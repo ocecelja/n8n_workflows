@@ -1,0 +1,606 @@
+{
+  "updatedAt": "2026-01-24T06:07:31.748Z",
+  "createdAt": "2026-01-21T17:26:50.468Z",
+  "id": "LLQ5sFn2xrQtOOzy",
+  "name": "LinkedIn Post Content Edit",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "user_edit"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        48
+      ],
+      "id": "ddda23d6-494c-46be-a9bd-15728576e42c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $json.message_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        48
+      ],
+      "id": "4b1fbe7d-2a88-4894-b1c2-3fee62a6e5fc",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('When Executed by Another Workflow').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "id": "3e57f5f3-c7e9-4ea8-97ed-2d5084d857ed",
+      "name": "Content creator",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        208,
+        48
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "id": "a6377095-7643-4737-9a58-f8295b8e21f0",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        208,
+        224
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "XStdg09nSm0XQbuY",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
+      },
+      "id": "c2f42701-9fc2-4918-b558-93ddeb41dbf9",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        352,
+        224
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Get row(s)').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        48
+      ],
+      "id": "6d8cb043-72f7-48da-bf99-88bea034ec31",
+      "name": "Concanate Post Content"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "=={{ $now }}",
+            "post_content": "={{ $json['post content'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "approval_id",
+              "displayName": "approval_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        48
+      ],
+      "id": "cd51f950-c8f5-4352-b5aa-89fd862a63eb",
+      "name": "Upsert row(s)"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Content creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content creator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content creator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content creator": {
+      "main": [
+        [
+          {
+            "node": "Concanate Post Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Concanate Post Content": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "content_id": null,
+          "message_id": "378",
+          "user_edit": "Topic: Software bugs can cost millions, but they start with small oversights. - must be more punchy and shocking!"
+        }
+      }
+    ]
+  },
+  "versionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
+  "activeVersionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-21T17:26:50.471Z",
+      "createdAt": "2026-01-21T17:26:50.471Z",
+      "role": "workflow:owner",
+      "workflowId": "LLQ5sFn2xrQtOOzy",
+      "projectId": "9yX4R0cKO1fKLrIT"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-21T18:40:38.000Z",
+    "createdAt": "2026-01-21T18:40:35.488Z",
+    "versionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
+    "workflowId": "LLQ5sFn2xrQtOOzy",
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "message_id"
+              },
+              {
+                "name": "user_edit"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -144,
+          48
+        ],
+        "id": "ddda23d6-494c-46be-a9bd-15728576e42c",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $json.message_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          32,
+          48
+        ],
+        "id": "4b1fbe7d-2a88-4894-b1c2-3fee62a6e5fc",
+        "name": "Get row(s)"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('When Executed by Another Workflow').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+          "hasOutputParser": true,
+          "batching": {}
+        },
+        "id": "3e57f5f3-c7e9-4ea8-97ed-2d5084d857ed",
+        "name": "Content creator",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "position": [
+          208,
+          48
+        ],
+        "typeVersion": 1.7
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-5",
+            "mode": "list",
+            "cachedResultName": "gpt-5"
+          },
+          "options": {}
+        },
+        "id": "a6377095-7643-4737-9a58-f8295b8e21f0",
+        "name": "OpenAI Chat Model1",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          208,
+          224
+        ],
+        "typeVersion": 1.2,
+        "credentials": {
+          "openAiApi": {
+            "id": "XStdg09nSm0XQbuY",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
+        },
+        "id": "c2f42701-9fc2-4918-b558-93ddeb41dbf9",
+        "name": "Structured Output Parser1",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "position": [
+          352,
+          224
+        ],
+        "typeVersion": 1.2
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Get row(s)').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          544,
+          48
+        ],
+        "id": "6d8cb043-72f7-48da-bf99-88bea034ec31",
+        "name": "Concanate Post Content"
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "created_at": "=={{ $now }}",
+              "post_content": "={{ $json['post content'] }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "approval_id",
+                "displayName": "approval_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "hashtags",
+                "displayName": "hashtags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "post_content",
+                "displayName": "post_content",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "image_url",
+                "displayName": "image_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          736,
+          48
+        ],
+        "id": "cd51f950-c8f5-4352-b5aa-89fd862a63eb",
+        "name": "Upsert row(s)"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Get row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get row(s)": {
+        "main": [
+          [
+            {
+              "node": "Content creator",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Content creator",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser1": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "Content creator",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Content creator": {
+        "main": [
+          [
+            {
+              "node": "Concanate Post Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Concanate Post Content": {
+        "main": [
+          [
+            {
+              "node": "Upsert row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ozren Cecelja",
+    "name": "Version e6ee2f34",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": []
+}
