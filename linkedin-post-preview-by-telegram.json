@@ -1,0 +1,1502 @@
+{
+  "updatedAt": "2026-01-24T06:07:09.535Z",
+  "createdAt": "2026-01-15T08:28:03.323Z",
+  "id": "CQMOekrQxamRkw0P",
+  "name": "LinkedIn Post Preview by Telegram",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $json.image_url }}",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"width\": {{ $json.width }},\n  \"height\": {{ $json.width }},\n  \"seed\": 42,\n  \"nologo\": true\n}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "494b126c-8c44-47e9-b7c4-58bec708a36c",
+      "name": "Download Photo",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        576,
+        16
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "alwaysOutputData": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "chatId": "7010291974",
+        "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}\n",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Approve",
+                    "additionalFields": {
+                      "callback_data": "={\"type\":\"decision\",\"value\":\"APPROVE\"}"
+                    }
+                  },
+                  {
+                    "text": "🔄 Re-generate",
+                    "additionalFields": {
+                      "callback_data": "={\"type\":\"decision\",\"value\":\"REGEN\"}"
+                    }
+                  },
+                  {
+                    "text": "✏️ Edit",
+                    "additionalFields": {
+                      "callback_data": "{\"type\":\"decision\",\"value\":\"EDIT\"}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        16
+      ],
+      "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
+      "name": "Send a text message",
+      "webhookId": "e4663fb1-2439-498e-a4bf-803f2e4d871f",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "7010291974",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        16
+      ],
+      "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
+      "name": "Send a photo message",
+      "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $json.message_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -80
+      ],
+      "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "content_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_message_pending",
+              "displayName": "is_message_pending",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_description",
+              "displayName": "image_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        -80
+      ],
+      "id": "1f10296e-3397-4265-96de-07c17986279c",
+      "name": "Update row(s)"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"post_content\": \"{{ $('Download Photo').item.json.post_content + '\\n\\n' + $('Download Photo').item.json.hashtags }}\"\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                    "leftValue": "={{ $json.content_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        16
+      ],
+      "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "content_id",
+              "keyValue": "={{ $json.content_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        112
+      ],
+      "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
+      "name": "Get row(s)1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        16
+      ],
+      "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "content_id",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_message_pending",
+              "displayName": "is_message_pending",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_description",
+              "displayName": "image_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        112
+      ],
+      "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
+      "name": "Update row(s)1"
+    }
+  ],
+  "connections": {
+    "Download Photo": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Download Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)1": {
+      "main": [
+        [
+          {
+            "node": "Download Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "message_id": null,
+          "content_id": "1335"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
+  "activeVersionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-15T08:28:03.330Z",
+      "createdAt": "2026-01-15T08:28:03.330Z",
+      "role": "workflow:owner",
+      "workflowId": "CQMOekrQxamRkw0P",
+      "projectId": "9yX4R0cKO1fKLrIT"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-22T10:11:38.000Z",
+    "createdAt": "2026-01-22T10:11:35.891Z",
+    "versionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
+    "workflowId": "CQMOekrQxamRkw0P",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "={{ $json.image_url }}",
+          "sendQuery": true,
+          "specifyQuery": "json",
+          "jsonQuery": "={\n  \"width\": {{ $json.width }},\n  \"height\": {{ $json.width }},\n  \"seed\": 42,\n  \"nologo\": true\n}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "494b126c-8c44-47e9-b7c4-58bec708a36c",
+        "name": "Download Photo",
+        "type": "n8n-nodes-base.httpRequest",
+        "position": [
+          576,
+          16
+        ],
+        "retryOnFail": true,
+        "typeVersion": 4.2,
+        "alwaysOutputData": true,
+        "waitBetweenTries": 5000
+      },
+      {
+        "parameters": {
+          "chatId": "7010291974",
+          "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}\n",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "✅ Approve",
+                      "additionalFields": {
+                        "callback_data": "={\"type\":\"decision\",\"value\":\"APPROVE\"}"
+                      }
+                    },
+                    {
+                      "text": "🔄 Re-generate",
+                      "additionalFields": {
+                        "callback_data": "={\"type\":\"decision\",\"value\":\"REGEN\"}"
+                      }
+                    },
+                    {
+                      "text": "✏️ Edit",
+                      "additionalFields": {
+                        "callback_data": "{\"type\":\"decision\",\"value\":\"EDIT\"}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1248,
+          16
+        ],
+        "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
+        "name": "Send a text message",
+        "webhookId": "e4663fb1-2439-498e-a4bf-803f2e4d871f",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "7010291974",
+          "binaryData": true,
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          800,
+          16
+        ],
+        "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
+        "name": "Send a photo message",
+        "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
+        "alwaysOutputData": false,
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $json.message_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          -80
+        ],
+        "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
+        "name": "Get row(s)"
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "message_id"
+              },
+              {
+                "name": "content_id"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -96,
+          16
+        ],
+        "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "content_id",
+                "displayName": "content_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "is_message_pending",
+                "displayName": "is_message_pending",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "hashtags",
+                "displayName": "hashtags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "width",
+                "displayName": "width",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "post_content",
+                "displayName": "post_content",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_description",
+                "displayName": "image_description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_url",
+                "displayName": "image_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "height",
+                "displayName": "height",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1696,
+          -80
+        ],
+        "id": "1f10296e-3397-4265-96de-07c17986279c",
+        "name": "Update row(s)"
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "={\n  \"post_content\": \"{{ $('Download Photo').item.json.post_content + '\\n\\n' + $('Download Photo').item.json.hashtags }}\"\n}\n\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1024,
+          16
+        ],
+        "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.message_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      },
+                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                      "leftValue": "={{ $json.content_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          128,
+          16
+        ],
+        "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "content_id",
+                "keyValue": "={{ $json.content_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          112
+        ],
+        "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
+        "name": "Get row(s)1"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      },
+                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                      "leftValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          1472,
+          16
+        ],
+        "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
+        "name": "Switch1"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "content_id",
+                "keyValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "content_id",
+                "displayName": "content_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "is_message_pending",
+                "displayName": "is_message_pending",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "hashtags",
+                "displayName": "hashtags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "width",
+                "displayName": "width",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "post_content",
+                "displayName": "post_content",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_description",
+                "displayName": "image_description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_url",
+                "displayName": "image_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "height",
+                "displayName": "height",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1696,
+          112
+        ],
+        "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
+        "name": "Update row(s)1"
+      }
+    ],
+    "connections": {
+      "Download Photo": {
+        "main": [
+          [
+            {
+              "node": "Send a photo message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a text message": {
+        "main": [
+          [
+            {
+              "node": "Switch1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a photo message": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get row(s)": {
+        "main": [
+          [
+            {
+              "node": "Download Photo",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get row(s)1": {
+        "main": [
+          [
+            {
+              "node": "Download Photo",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Get row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get row(s)1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch1": {
+        "main": [
+          [
+            {
+              "node": "Update row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Update row(s)1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ozren Cecelja",
+    "name": "Version 32849d24",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": []
+}
