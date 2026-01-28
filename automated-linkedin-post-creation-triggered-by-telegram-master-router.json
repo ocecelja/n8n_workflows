@@ -1,11 +1,39 @@
 {
-  "updatedAt": "2026-01-25T08:14:03.738Z",
+  "updatedAt": "2026-01-27T17:52:44.943Z",
   "createdAt": "2026-01-13T13:35:46.218Z",
   "id": "m85cMostB9gF0oR3",
   "name": "Automated LinkedIn Post Creation Triggered by Telegram Master Router",
   "active": true,
   "isArchived": false,
   "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chat_id"
+            },
+            {
+              "name": "callback_query_id"
+            },
+            {
+              "name": "action"
+            },
+            {
+              "name": "message_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        40
+      ],
+      "id": "b5bc6605-eb76-423c-8e10-911966f2d45c",
+      "name": "Inbound Request"
+    },
     {
       "parameters": {
         "operation": "get",
@@ -30,59 +58,80 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        672,
-        -32
+        704,
+        40
       ],
       "id": "0f964e67-f564-43e5-918d-b0f8039f6f10",
-      "name": "Load Draft",
+      "name": "Fetch Draft",
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "const post = $('Load Draft').first().json.post_content ?? '';\nconst hashtags = $('Load Draft').first().json.hashtags ?? '';\n\n// Combine post + hashtags with double newline (only if hashtags exist)\nconst combinedText = hashtags\n  ? `${post}\\n\\n${hashtags}`\n  : post;\n\n// Escape LinkedIn \"little text format\" reserved characters\n// Includes: \\ | { } @ [ ] ( ) < > # * _ ~\nconst escaped = combinedText.replace(/[\\\\|{}@\\[\\]()<>\\#*_~]/g, (m) => `\\\\${m}`);\n\nreturn [{\n  json: {\n    ...$json,\n    commentary_escaped: escaped,\n  }\n}];\n"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e04fec4-441e-45f7-acea-0017a4b5c104",
+              "name": "model",
+              "type": "string",
+              "value": "flux"
+            },
+            {
+              "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
+              "name": "width",
+              "type": "string",
+              "value": "1200"
+            },
+            {
+              "id": "da6d305f-aece-49bd-ae02-52df59915c60",
+              "name": "height",
+              "type": "string",
+              "value": "627"
+            }
+          ]
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "id": "b11d3ba3-d477-483c-ab88-f0985c9b5aec",
+      "name": "Image Params",
+      "type": "n8n-nodes-base.set",
       "position": [
-        1872,
-        112
+        928,
+        40
       ],
-      "id": "02111825-f6c4-4100-a734-3acf5a05bc4e",
-      "name": "Get rid of unwanted symbols"
+      "typeVersion": 3.4
     },
     {
       "parameters": {
-        "content": "## **3. LinkedIn Post Upload**\nPrepares content (text + hashtags + image) and uploads it to LinkedIn as a post.\n",
-        "height": 524,
-        "width": 1092,
-        "color": 3
+        "url": "={{ $('Fetch Draft').item.json.image_url }}",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"width\": {{ $('Image Params').item.json.width }},\n  \"height\": {{ $('Image Params').item.json.height }},\n  \"model\": \"{{ $('Image Params').item.json.model }}\",\n  \"seed\": 42,\n  \"nologo\": true\n}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "d94c77d7-4243-4de0-a1e1-439ad22185a2",
-      "name": "Sticky Note2",
-      "type": "n8n-nodes-base.stickyNote",
+      "id": "bbd11ea9-5894-4103-a566-5f889ad9be0e",
+      "name": "Fetch Image",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1232,
-        -144
+        1152,
+        40
       ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {
-          "includeUnpaired": true
-        }
-      },
-      "id": "c7adb217-96be-4b56-8147-1af2767fa375",
-      "name": "AI and LinkedIn Merger",
-      "type": "n8n-nodes-base.merge",
-      "position": [
-        1504,
-        112
-      ],
-      "typeVersion": 3.2,
-      "alwaysOutputData": false
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "alwaysOutputData": true,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -115,11 +164,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1328,
+        1376,
         -32
       ],
       "id": "075fc170-9e00-4565-afad-e42a1976cbf5",
-      "name": "LinkedIn Init Upload",
+      "name": "Init LI Upload",
       "alwaysOutputData": false,
       "credentials": {
         "oAuth2Api": {
@@ -127,6 +176,56 @@
           "name": "Unnamed credential"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "c7adb217-96be-4b56-8147-1af2767fa375",
+      "name": "Merge Draft+Image",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1600,
+        40
+      ],
+      "typeVersion": 3.2,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $node[\"Init LI Upload\"].json.value.uploadUrl }}",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1824,
+        40
+      ],
+      "id": "4201a3f1-875a-41c8-874a-a43730143072",
+      "name": "Upload Image Bytes",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const post = $('Fetch Draft').first().json.post_content ?? '';\nconst hashtags = $('Fetch Draft').first().json.hashtags ?? '';\n\n// Combine post + hashtags with double newline (only if hashtags exist)\nconst combinedText = hashtags\n  ? `${post}\\n\\n${hashtags}`\n  : post;\n\n// Escape LinkedIn \"little text format\" reserved characters\n// Includes: \\ | { } @ [ ] ( ) < > # * _ ~\nconst escaped = combinedText.replace(/[\\\\|{}@\\[\\]()<>\\#*_~]/g, (m) => `\\\\${m}`);\n\nreturn [{\n  json: {\n    ...$json,\n    commentary_escaped: escaped,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        40
+      ],
+      "id": "02111825-f6c4-4100-a734-3acf5a05bc4e",
+      "name": "Escape LI Text"
     },
     {
       "parameters": {
@@ -176,7 +275,7 @@
             },
             {
               "name": "content.media.id",
-              "value": "={{$('LinkedIn Init Upload').item.json.value.image.trim()}}"
+              "value": "={{$('Init LI Upload').item.json.value.image.trim()}}"
             }
           ]
         },
@@ -185,11 +284,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        2048,
-        112
+        2272,
+        40
       ],
       "id": "60f2a8cc-03bc-4c6b-9b07-4b43a5c4cd50",
-      "name": "HTTP Upload",
+      "name": "Create LI Post",
       "credentials": {
         "oAuth2Api": {
           "id": "4ogZupgLUSbsVVzo",
@@ -199,123 +298,8 @@
     },
     {
       "parameters": {
-        "method": "PUT",
-        "url": "={{ $node[\"LinkedIn Init Upload\"].json.value.uploadUrl }}",
-        "sendBody": true,
-        "contentType": "binaryData",
-        "inputDataFieldName": "=data",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        1680,
-        112
-      ],
-      "id": "4201a3f1-875a-41c8-874a-a43730143072",
-      "name": "HTTP Put",
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "url": "={{ $('Load Draft').item.json.image_url }}",
-        "sendQuery": true,
-        "specifyQuery": "json",
-        "jsonQuery": "={\n  \"width\": {{ $('Image Values').item.json.width }},\n  \"height\": {{ $('Image Values').item.json.height }},\n  \"model\": \"{{ $('Image Values').item.json.model }}\",\n  \"seed\": 42,\n  \"nologo\": true\n}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "bbd11ea9-5894-4103-a566-5f889ad9be0e",
-      "name": "Download Photo",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        1072,
-        -32
-      ],
-      "retryOnFail": true,
-      "typeVersion": 4.2,
-      "alwaysOutputData": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "4e04fec4-441e-45f7-acea-0017a4b5c104",
-              "name": "model",
-              "type": "string",
-              "value": "flux"
-            },
-            {
-              "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
-              "name": "width",
-              "type": "string",
-              "value": "1200"
-            },
-            {
-              "id": "da6d305f-aece-49bd-ae02-52df59915c60",
-              "name": "height",
-              "type": "string",
-              "value": "627"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "b11d3ba3-d477-483c-ab88-f0985c9b5aec",
-      "name": "Image Values",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        880,
-        -32
-      ],
-      "typeVersion": 3.4
-    },
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "chat_id"
-            },
-            {
-              "name": "callback_query_id"
-            },
-            {
-              "name": "action"
-            },
-            {
-              "name": "message_id"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        480,
-        -32
-      ],
-      "id": "b5bc6605-eb76-423c-8e10-911966f2d45c",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
         "resource": "callback",
-        "queryId": "={{ $('When Executed by Another Workflow').item.json.callback_query_id }}",
+        "queryId": "={{ $('Inbound Request').item.json.callback_query_id }}",
         "additionalFields": {
           "text": "Published on LinkedIn!"
         }
@@ -323,11 +307,11 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2240,
-        112
+        2496,
+        40
       ],
       "id": "137d7fd5-ac8f-4595-9409-b8bcec863c81",
-      "name": "Answer Query a callback",
+      "name": "TG Ack Publish",
       "webhookId": "8f5a947b-8636-4c2d-be80-53647483f50f",
       "credentials": {
         "telegramApi": {
@@ -338,104 +322,104 @@
     }
   ],
   "connections": {
-    "AI and LinkedIn Merger": {
+    "Inbound Request": {
       "main": [
         [
           {
-            "node": "HTTP Put",
+            "node": "Fetch Draft",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "LinkedIn Init Upload": {
+    "Fetch Draft": {
       "main": [
         [
           {
-            "node": "AI and LinkedIn Merger",
+            "node": "Image Params",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get rid of unwanted symbols": {
+    "Image Params": {
       "main": [
         [
           {
-            "node": "HTTP Upload",
+            "node": "Fetch Image",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Put": {
+    "Fetch Image": {
       "main": [
         [
           {
-            "node": "Get rid of unwanted symbols",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load Draft": {
-      "main": [
-        [
-          {
-            "node": "Image Values",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Image Values": {
-      "main": [
-        [
-          {
-            "node": "Download Photo",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Photo": {
-      "main": [
-        [
-          {
-            "node": "AI and LinkedIn Merger",
+            "node": "Merge Draft+Image",
             "type": "main",
             "index": 1
           },
           {
-            "node": "LinkedIn Init Upload",
+            "node": "Init LI Upload",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "When Executed by Another Workflow": {
+    "Init LI Upload": {
       "main": [
         [
           {
-            "node": "Load Draft",
+            "node": "Merge Draft+Image",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Upload": {
+    "Merge Draft+Image": {
       "main": [
         [
           {
-            "node": "Answer Query a callback",
+            "node": "Upload Image Bytes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Image Bytes": {
+      "main": [
+        [
+          {
+            "node": "Escape LI Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escape LI Text": {
+      "main": [
+        [
+          {
+            "node": "Create LI Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create LI Post": {
+      "main": [
+        [
+          {
+            "node": "TG Ack Publish",
             "type": "main",
             "index": 0
           }
@@ -452,7 +436,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {
-    "When Executed by Another Workflow": [
+    "Inbound Request": [
       {
         "json": {
           "chat_id": "7010291974",
@@ -465,7 +449,7 @@
         }
       }
     ],
-    "Get rid of unwanted symbols": [
+    "Escape LI Text": [
       {
         "json": {
           "commentary_escaped": "Your ISR is faster than your CAN hardware—and it’s deleting your data.\n\nA shipped automotive ECU intermittently dropped CAN frames in the field for two months. Telemetry showed sporadic checksum mismatches and missing sequence IDs under burst traffic at 500 kbps, especially after wake-from-sleep. Unit tests and HIL passed, but long-haul road logs revealed silent data corruption and occasional watchdog nudges with no reproducible trigger in the lab.\n\nThe RX interrupt handler cleared the receive flag as its first instruction, before the CAN peripheral had completed latching the frame into the mailbox. Under certain timing \\(bus-heavy ISR nesting, clock drift after sleep, and DMA contention\\), the clear acknowledged the interrupt source early, the hardware overwrote the RX buffer, and the driver then read either stale or partially updated data. The race hid in tests because simulated traffic didn’t align the ISR entry with the peripheral’s write window.\n\nWe reordered the ISR to read and validate the mailbox first, then clear the flag after data is safely copied to a software queue, adding a memory barrier to enforce ordering. We disabled preemption during the critical read, added double-read consistency checks on DLC/ID, and introduced a hardware-ready poll with a bounded timeout. Regression now includes stress patterns that sweep ISR latency vs. peripheral write timing, plus fault-injection to jitter clocks and enable nested interrupts. Takeaway: in interrupt-driven drivers, never acknowledge before you own the data—tie flag clearing to a verified, ordered read path and test across timing phase space, not just function paths.\n\n\\#Automotive \\#Embedded \\#Debugging \\#DataIntegrity \\#EmbeddedSystems \\#FutureOfWork \\#DigitalTransformation"
@@ -473,8 +457,8 @@
       }
     ]
   },
-  "versionId": "25857f5f-f12a-487e-9351-d8001f64600b",
-  "activeVersionId": "25857f5f-f12a-487e-9351-d8001f64600b",
+  "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
+  "activeVersionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
   "triggerCount": 0,
   "shared": [
     {
@@ -486,11 +470,39 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-25T08:14:06.000Z",
-    "createdAt": "2026-01-25T08:14:03.739Z",
-    "versionId": "25857f5f-f12a-487e-9351-d8001f64600b",
+    "updatedAt": "2026-01-27T17:52:52.000Z",
+    "createdAt": "2026-01-27T17:52:44.944Z",
+    "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
     "workflowId": "m85cMostB9gF0oR3",
     "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "chat_id"
+              },
+              {
+                "name": "callback_query_id"
+              },
+              {
+                "name": "action"
+              },
+              {
+                "name": "message_id"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          480,
+          40
+        ],
+        "id": "b5bc6605-eb76-423c-8e10-911966f2d45c",
+        "name": "Inbound Request"
+      },
       {
         "parameters": {
           "operation": "get",
@@ -515,59 +527,80 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          672,
-          -32
+          704,
+          40
         ],
         "id": "0f964e67-f564-43e5-918d-b0f8039f6f10",
-        "name": "Load Draft",
+        "name": "Fetch Draft",
         "alwaysOutputData": true
       },
       {
         "parameters": {
-          "jsCode": "const post = $('Load Draft').first().json.post_content ?? '';\nconst hashtags = $('Load Draft').first().json.hashtags ?? '';\n\n// Combine post + hashtags with double newline (only if hashtags exist)\nconst combinedText = hashtags\n  ? `${post}\\n\\n${hashtags}`\n  : post;\n\n// Escape LinkedIn \"little text format\" reserved characters\n// Includes: \\ | { } @ [ ] ( ) < > # * _ ~\nconst escaped = combinedText.replace(/[\\\\|{}@\\[\\]()<>\\#*_~]/g, (m) => `\\\\${m}`);\n\nreturn [{\n  json: {\n    ...$json,\n    commentary_escaped: escaped,\n  }\n}];\n"
+          "assignments": {
+            "assignments": [
+              {
+                "id": "4e04fec4-441e-45f7-acea-0017a4b5c104",
+                "name": "model",
+                "type": "string",
+                "value": "flux"
+              },
+              {
+                "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
+                "name": "width",
+                "type": "string",
+                "value": "1200"
+              },
+              {
+                "id": "da6d305f-aece-49bd-ae02-52df59915c60",
+                "name": "height",
+                "type": "string",
+                "value": "627"
+              }
+            ]
+          },
+          "options": {}
         },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
+        "id": "b11d3ba3-d477-483c-ab88-f0985c9b5aec",
+        "name": "Image Params",
+        "type": "n8n-nodes-base.set",
         "position": [
-          1872,
-          112
+          928,
+          40
         ],
-        "id": "02111825-f6c4-4100-a734-3acf5a05bc4e",
-        "name": "Get rid of unwanted symbols"
+        "typeVersion": 3.4
       },
       {
         "parameters": {
-          "content": "## **3. LinkedIn Post Upload**\nPrepares content (text + hashtags + image) and uploads it to LinkedIn as a post.\n",
-          "height": 524,
-          "width": 1092,
-          "color": 3
+          "url": "={{ $('Fetch Draft').item.json.image_url }}",
+          "sendQuery": true,
+          "specifyQuery": "json",
+          "jsonQuery": "={\n  \"width\": {{ $('Image Params').item.json.width }},\n  \"height\": {{ $('Image Params').item.json.height }},\n  \"model\": \"{{ $('Image Params').item.json.model }}\",\n  \"seed\": 42,\n  \"nologo\": true\n}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
         },
-        "id": "d94c77d7-4243-4de0-a1e1-439ad22185a2",
-        "name": "Sticky Note2",
-        "type": "n8n-nodes-base.stickyNote",
+        "id": "bbd11ea9-5894-4103-a566-5f889ad9be0e",
+        "name": "Fetch Image",
+        "type": "n8n-nodes-base.httpRequest",
         "position": [
-          1232,
-          -144
+          1152,
+          40
         ],
-        "typeVersion": 1
-      },
-      {
-        "parameters": {
-          "mode": "combine",
-          "combineBy": "combineByPosition",
-          "options": {
-            "includeUnpaired": true
-          }
-        },
-        "id": "c7adb217-96be-4b56-8147-1af2767fa375",
-        "name": "AI and LinkedIn Merger",
-        "type": "n8n-nodes-base.merge",
-        "position": [
-          1504,
-          112
-        ],
-        "typeVersion": 3.2,
-        "alwaysOutputData": false
+        "retryOnFail": true,
+        "typeVersion": 4.2,
+        "alwaysOutputData": true,
+        "waitBetweenTries": 5000
       },
       {
         "parameters": {
@@ -600,11 +633,11 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.3,
         "position": [
-          1328,
+          1376,
           -32
         ],
         "id": "075fc170-9e00-4565-afad-e42a1976cbf5",
-        "name": "LinkedIn Init Upload",
+        "name": "Init LI Upload",
         "alwaysOutputData": false,
         "credentials": {
           "oAuth2Api": {
@@ -612,6 +645,56 @@
             "name": "Unnamed credential"
           }
         }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "options": {
+            "includeUnpaired": true
+          }
+        },
+        "id": "c7adb217-96be-4b56-8147-1af2767fa375",
+        "name": "Merge Draft+Image",
+        "type": "n8n-nodes-base.merge",
+        "position": [
+          1600,
+          40
+        ],
+        "typeVersion": 3.2,
+        "alwaysOutputData": false
+      },
+      {
+        "parameters": {
+          "method": "PUT",
+          "url": "={{ $node[\"Init LI Upload\"].json.value.uploadUrl }}",
+          "sendBody": true,
+          "contentType": "binaryData",
+          "inputDataFieldName": "=data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1824,
+          40
+        ],
+        "id": "4201a3f1-875a-41c8-874a-a43730143072",
+        "name": "Upload Image Bytes",
+        "alwaysOutputData": false
+      },
+      {
+        "parameters": {
+          "jsCode": "const post = $('Fetch Draft').first().json.post_content ?? '';\nconst hashtags = $('Fetch Draft').first().json.hashtags ?? '';\n\n// Combine post + hashtags with double newline (only if hashtags exist)\nconst combinedText = hashtags\n  ? `${post}\\n\\n${hashtags}`\n  : post;\n\n// Escape LinkedIn \"little text format\" reserved characters\n// Includes: \\ | { } @ [ ] ( ) < > # * _ ~\nconst escaped = combinedText.replace(/[\\\\|{}@\\[\\]()<>\\#*_~]/g, (m) => `\\\\${m}`);\n\nreturn [{\n  json: {\n    ...$json,\n    commentary_escaped: escaped,\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2048,
+          40
+        ],
+        "id": "02111825-f6c4-4100-a734-3acf5a05bc4e",
+        "name": "Escape LI Text"
       },
       {
         "parameters": {
@@ -661,7 +744,7 @@
               },
               {
                 "name": "content.media.id",
-                "value": "={{$('LinkedIn Init Upload').item.json.value.image.trim()}}"
+                "value": "={{$('Init LI Upload').item.json.value.image.trim()}}"
               }
             ]
           },
@@ -670,11 +753,11 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.3,
         "position": [
-          2048,
-          112
+          2272,
+          40
         ],
         "id": "60f2a8cc-03bc-4c6b-9b07-4b43a5c4cd50",
-        "name": "HTTP Upload",
+        "name": "Create LI Post",
         "credentials": {
           "oAuth2Api": {
             "id": "4ogZupgLUSbsVVzo",
@@ -684,123 +767,8 @@
       },
       {
         "parameters": {
-          "method": "PUT",
-          "url": "={{ $node[\"LinkedIn Init Upload\"].json.value.uploadUrl }}",
-          "sendBody": true,
-          "contentType": "binaryData",
-          "inputDataFieldName": "=data",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.3,
-        "position": [
-          1680,
-          112
-        ],
-        "id": "4201a3f1-875a-41c8-874a-a43730143072",
-        "name": "HTTP Put",
-        "alwaysOutputData": false
-      },
-      {
-        "parameters": {
-          "url": "={{ $('Load Draft').item.json.image_url }}",
-          "sendQuery": true,
-          "specifyQuery": "json",
-          "jsonQuery": "={\n  \"width\": {{ $('Image Values').item.json.width }},\n  \"height\": {{ $('Image Values').item.json.height }},\n  \"model\": \"{{ $('Image Values').item.json.model }}\",\n  \"seed\": 42,\n  \"nologo\": true\n}",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "name": "Accept",
-                "value": "application/json"
-              }
-            ]
-          },
-          "options": {}
-        },
-        "id": "bbd11ea9-5894-4103-a566-5f889ad9be0e",
-        "name": "Download Photo",
-        "type": "n8n-nodes-base.httpRequest",
-        "position": [
-          1072,
-          -32
-        ],
-        "retryOnFail": true,
-        "typeVersion": 4.2,
-        "alwaysOutputData": true,
-        "waitBetweenTries": 5000
-      },
-      {
-        "parameters": {
-          "assignments": {
-            "assignments": [
-              {
-                "id": "4e04fec4-441e-45f7-acea-0017a4b5c104",
-                "name": "model",
-                "type": "string",
-                "value": "flux"
-              },
-              {
-                "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
-                "name": "width",
-                "type": "string",
-                "value": "1200"
-              },
-              {
-                "id": "da6d305f-aece-49bd-ae02-52df59915c60",
-                "name": "height",
-                "type": "string",
-                "value": "627"
-              }
-            ]
-          },
-          "options": {}
-        },
-        "id": "b11d3ba3-d477-483c-ab88-f0985c9b5aec",
-        "name": "Image Values",
-        "type": "n8n-nodes-base.set",
-        "position": [
-          880,
-          -32
-        ],
-        "typeVersion": 3.4
-      },
-      {
-        "parameters": {
-          "workflowInputs": {
-            "values": [
-              {
-                "name": "chat_id"
-              },
-              {
-                "name": "callback_query_id"
-              },
-              {
-                "name": "action"
-              },
-              {
-                "name": "message_id"
-              }
-            ]
-          }
-        },
-        "type": "n8n-nodes-base.executeWorkflowTrigger",
-        "typeVersion": 1.1,
-        "position": [
-          480,
-          -32
-        ],
-        "id": "b5bc6605-eb76-423c-8e10-911966f2d45c",
-        "name": "When Executed by Another Workflow"
-      },
-      {
-        "parameters": {
           "resource": "callback",
-          "queryId": "={{ $('When Executed by Another Workflow').item.json.callback_query_id }}",
+          "queryId": "={{ $('Inbound Request').item.json.callback_query_id }}",
           "additionalFields": {
             "text": "Published on LinkedIn!"
           }
@@ -808,11 +776,11 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          2240,
-          112
+          2496,
+          40
         ],
         "id": "137d7fd5-ac8f-4595-9409-b8bcec863c81",
-        "name": "Answer Query a callback",
+        "name": "TG Ack Publish",
         "webhookId": "8f5a947b-8636-4c2d-be80-53647483f50f",
         "credentials": {
           "telegramApi": {
@@ -823,104 +791,104 @@
       }
     ],
     "connections": {
-      "AI and LinkedIn Merger": {
+      "Inbound Request": {
         "main": [
           [
             {
-              "node": "HTTP Put",
+              "node": "Fetch Draft",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "LinkedIn Init Upload": {
+      "Fetch Draft": {
         "main": [
           [
             {
-              "node": "AI and LinkedIn Merger",
+              "node": "Image Params",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Get rid of unwanted symbols": {
+      "Image Params": {
         "main": [
           [
             {
-              "node": "HTTP Upload",
+              "node": "Fetch Image",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "HTTP Put": {
+      "Fetch Image": {
         "main": [
           [
             {
-              "node": "Get rid of unwanted symbols",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load Draft": {
-        "main": [
-          [
-            {
-              "node": "Image Values",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Image Values": {
-        "main": [
-          [
-            {
-              "node": "Download Photo",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Download Photo": {
-        "main": [
-          [
-            {
-              "node": "AI and LinkedIn Merger",
+              "node": "Merge Draft+Image",
               "type": "main",
               "index": 1
             },
             {
-              "node": "LinkedIn Init Upload",
+              "node": "Init LI Upload",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "When Executed by Another Workflow": {
+      "Init LI Upload": {
         "main": [
           [
             {
-              "node": "Load Draft",
+              "node": "Merge Draft+Image",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "HTTP Upload": {
+      "Merge Draft+Image": {
         "main": [
           [
             {
-              "node": "Answer Query a callback",
+              "node": "Upload Image Bytes",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload Image Bytes": {
+        "main": [
+          [
+            {
+              "node": "Escape LI Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Escape LI Text": {
+        "main": [
+          [
+            {
+              "node": "Create LI Post",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create LI Post": {
+        "main": [
+          [
+            {
+              "node": "TG Ack Publish",
               "type": "main",
               "index": 0
             }
@@ -929,7 +897,7 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 25857f5f",
+    "name": "Version ba929b09",
     "description": "",
     "autosaved": false
   },
