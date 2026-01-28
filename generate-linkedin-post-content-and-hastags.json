@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-24T06:49:14.723Z",
+  "updatedAt": "2026-01-27T18:07:50.856Z",
   "createdAt": "2026-01-12T18:48:49.447Z",
   "id": "mJatCdnL86VthoQD",
   "name": "Generate LinkedIn Post  Content and Hastags",
@@ -8,375 +8,16 @@
   "nodes": [
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "perplexity-sonar-pro",
-          "mode": "list",
-          "cachedResultName": "perplexity-sonar-pro"
-        },
-        "options": {
-          "timeout": 60000
-        }
+        "jsonSchemaExample": "{\n\"title\": \"AI as Your First Content Hire: Why Founders Shouldn't Wait to Outsource Creation\",\n\"rationale\": \"Most solopreneurs delay content scaling because they think hiring a ghostwriter is the next step — but AI can handle 80% with proper systems. This shifts content from a creative bottleneck to a scalable growth lever.\",\n\"hook\": \"Ghostwriters are outdated. Train GPT once, and it ships LinkedIn gold in your voice daily. Welcome to hands-free thought leadership.\"\n          }"
       },
-      "id": "d5fe7e68-a84b-493b-b16c-edea687cf207",
-      "name": "OpenAI Chat Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "position": [
-        480,
-        -672
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "openAiApi": {
-          "id": "XStdg09nSm0XQbuY",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are a LinkedIn content creator and copywriter.\n\nINPUT:\nTitle/Idea: {{ $json.response.output[0].title }}\nRationale: {{ $json.response.output[0].rationale }}\nHook: {{ $json.response.output[0].hook }}\n\nWrite a LinkedIn post using the following fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nUse this exact schema:\n{\n  \"topic\": \"string\",\n  \"what_happened\": \"string\",\n  \"why_it_happened\": \"string\",\n  \"solution_and_takeaway\": \"string\",\n  \"image_description\": \"string\"\n}\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
-        "hasOutputParser": true,
-        "batching": {}
-      },
-      "id": "f75378f6-d4df-4bd5-8cea-5811e2dcdec7",
-      "name": "Content creator",
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "position": [
-        944,
-        -832
-      ],
-      "typeVersion": 1.7
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "gpt-5",
-          "mode": "list",
-          "cachedResultName": "gpt-5"
-        },
-        "options": {}
-      },
-      "id": "f279e89e-89d7-4045-9341-6540bd42b15e",
-      "name": "OpenAI Chat Model1",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "position": [
-        944,
-        -656
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "openAiApi": {
-          "id": "XStdg09nSm0XQbuY",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
-      },
-      "id": "37d3300d-95d6-4a0d-93d0-ee5dc1ad9f15",
-      "name": "Structured Output Parser1",
+      "id": "028c655f-0c50-4642-99c8-db0186a24d29",
+      "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "position": [
-        1088,
-        -656
+        624,
+        -560
       ],
       "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are an SEO specialist for LinkedIn. Your task is to generate highly relevant and effective hashtags for the following post. Consider the post's content, target audience, and current LinkedIn trends to maximize visibility and engagement.\n\n<post_title>{{ $json.output.topic }}</post_title>\n<post_content>{{ $json.output.what_happened + ' ' + $json.output.why_it_happened + ' ' + $json.output.solution_and_takeaway }}</post_content>\n\nPlease generate:\n1. **3-5 broad, high-volume hashtags** (e.g., #AI, #Embedded, #Safety, #Aviation, #Automotive)\n2. **3-5 niche-specific hashtags** that are directly relevant to the post's core topic (e.g., #Debugging, #Xilinx, #VSC)\n3. **1-2 trending/topical hashtags** if applicable (e.g., #FutureOfWork, #DigitalTransformation)\n\nPresent them as a comma-separated list.",
-        "hasOutputParser": true,
-        "options": {}
-      },
-      "id": "282b2160-50ec-4887-a0e2-59ba80978f20",
-      "name": "Hashtag generator /SEO",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        1296,
-        -832
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4o-mini"
-        },
-        "options": {}
-      },
-      "id": "bf3483f6-dac2-4047-a97c-67f6bc0dbb9b",
-      "name": "OpenAI Chat Model2",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "position": [
-        1296,
-        -656
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "openAiApi": {
-          "id": "XStdg09nSm0XQbuY",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"post title\": \"Exciting New Feature Launch 🚀\",\n  \"post content\": \"After months of collaboration, testing, and fine-tuning, we're thrilled to introduce our latest product feature: Smart Insights. It helps users uncover meaningful patterns in their data with just a few clicks. This wouldn't have been possible without our incredible team and supportive community. We're excited for what's next — and we'd love your feedback!\",\n  \"image description\": \"A laptop screen showcasing the new Smart Insights dashboard with colorful charts and graphs, surrounded by a team clapping in the background.\",\n\"Hashtags\":[\"#AI\",\"#Automation\"]\n}"
-      },
-      "id": "df95ff58-3a19-41d1-88db-761717832886",
-      "name": "Structured Output Parser2",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "position": [
-        1440,
-        -656
-      ],
-      "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "content": "## **3. LinkedIn Post Upload**\nPrepares content (text + hashtags + image) and uploads it to LinkedIn as a post.\n",
-        "height": 828,
-        "width": 1396,
-        "color": 3
-      },
-      "id": "4ff23d94-7af3-4fed-8bcb-5e86e7e83e00",
-      "name": "Sticky Note2",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        2400,
-        -1312
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "content": "## **1. AI Agents**\n***1. Content Researcher***\nProvides couple of potential topics based on prompt provided.\n\n***2. Content Creator***\nSelects one of topics and produces post content and image description. Usually uses stronger AI models.\n\n***3. Image Generator***\nCreates image based of image description using prompt for narrow defining and restrictions to match LinkedIn requirements. \n\n***4. Hashtag Generator***\nBased on content generates most relevant hashtags.",
-        "height": 828,
-        "width": 1172,
-        "color": 4
-      },
-      "id": "527c6e39-74f0-4291-9540-862a9fbf5a53",
-      "name": "Sticky Note",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        560,
-        -1312
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "You are a Content Researcher Assistant supporting an experienced Embedded Software Engineer operating in safety-critical and hardware-centric environments (aviation, automotive, industrial, robotics).\n\nYour task is to generate high-value technical content topics derived from real-world embedded engineering problems, with an emphasis on system responsibility, production realism, and review-level insight.\n\nThese topics will later be expanded into technical threads (multi-post, structured, explanatory) by another agent.\n\nAudience Targeting (All Levels)\n\nEach topic must be relevant to all three experience levels:\n\nJunior Engineers — learning what actually matters in production systems\n\nSenior Engineers — refining judgment, debugging intuition, and architectural trade-offs\n\nTech Leads / Reviewers — decision-making, risk ownership, design reviews, failure prevention\n\nAlways think:\n\n“What should an experienced engineer warn the team about before approving this?”\n\nCore Technical Domains (Non-Exhaustive)\n\nTopics should correlate with practical, real-world issues, including but not limited to:\n\nProgramming & Code Quality\n\nC / C++ in embedded & safety-critical systems\n\nUndefined behavior, edge cases, compiler assumptions\n\nStatic analysis (MISRA, CERT-C/C++, clang-tidy, PC-Lint)\n\nCode review traps & false confidence patterns\n\nDebugging & Failure Analysis\n\nBug tracing on real hardware\n\nRace conditions, timing bugs, memory corruption\n\nPost-mortems: why this escaped tests\n\nLogs vs traces vs registers vs physical signals\n\nTesting & Validation\n\nLimits of unit testing in embedded systems\n\nCI/CD illusions for firmware\n\nSIL / PIL / HIL environments — strengths and blind spots\n\nTests that pass but systems that still fail in the field\n\nRTOS & Concurrency\n\nScheduling, ISR misuse, priority inversion\n\nDeadlocks that only happen under field conditions\n\nRTOS configuration risks often overlooked\n\nHardware Interaction\n\nDriver integration failures\n\nLogic analyzer / oscilloscope misuse by software engineers\n\nTiming assumptions vs physical reality\n\nSystems & Safety\n\nSafety-critical mindset (aviation / automotive)\n\nSecure boot, bootloaders, firmware update strategies\n\nCommunication protocols (CAN, SPI, UART, Ethernet, wireless)\n\nSensor integration & sensor fusion pitfalls\n\nLegacy & Reality\n\nReverse engineering undocumented systems\n\nInheriting unsafe or fragile architectures\n\n“We can’t rewrite this” technical decisions\n\nOutput Requirements (Per Topic)\n\nFor each topic, generate all of the following sections:\n\nTopic Title / Core Idea\n\nClear, concrete, and specific\n\nThread-worthy headline (not a blog title)\n\nAvoid buzzwords and generic phrasing\n\nReal-World Example (Professional Context)\n\nA short, realistic scenario from a professional embedded environment\n\nShould resemble a bug report, failed test, field issue, or review finding\n\nMust be plausible in production systems\n\nWhy This Matters (Rationale)\n\n1–2 sentences explaining the risk, failure mode, or system blind spot\n\nFocus on consequences, not just correctness\n\nGeneralized Solution or Mitigation Strategy\n\nA generalized approach, not just a fix for the example\n\nMay include architecture, review heuristics, testing strategies, or defensive coding\n\nShould answer: “How should this class of problems be prevented or detected early?”\n\nSuggested Angle / Hook (Thread-Optimized)\n\nA technical thread opener\n\nInvites a multi-post explanation\n\nSignals experience and accountability\n\nSlightly contrarian only when grounded in reality\n\nFormat Bias\n\nFavor technical threads that expand naturally into:\n\nStep-by-step reasoning\n\nCause → effect → mitigation\n\nMental models or diagrams\n\nWhat should be done differently next time\n\nAvoid:\n\nOne-liner tips\n\nMotivational or generic content\n\nTool marketing or shallow comparisons\n\nStyle & Tone\n\nExperience-driven, not academic\n\nPractical > theoretical\n\nSpecific > abstract\n\nCalm authority, not hype\n\nAssume the reader:\n\nHas shipped firmware\n\nHas broken hardware\n\nHas reviewed risky code late at night\n\nOptional Enhancements\n\nYou may optionally:\n\nTag topics as Junior lesson, Senior refinement, or Review-critical\n\nFlag topics suited for deep technical threads, post-mortems, or architecture reviews\n\nOutput format requirements:\n\nReturn valid JSON only.\nDo not include markdown, commentary, explanations, references, citations, URLs, or footnotes.\n\nThe response must be a JSON array with exactly 5 items!\n\nEach item must be a JSON object with exactly these keys:\n\n\"title\" — concise, specific, thread-worthy headline\n\n\"rationale\" — 1 sentence only explaining why this matters in production systems\n\n\"hook\" — a strong, experience-driven opening line for a technical thread\n\nStrict rules\n\nNo external sources\n\nNo citations or reference sections\n\nNo emojis\n\nNo additional keys\n\nKeep language practical and production-realistic\n\nEach field must be ≤ 40 words\n\nExpected structure\n[\n  {\n    \"title\": \"<string>\",\n    \"rationale\": \"<string>\",\n    \"hook\": \"<string>\"\n  }\n]\n\n\nIf you cannot comply exactly, return:\n\n{ \"error\": \"invalid_output\" }",
-        "hasOutputParser": true,
-        "options": {
-          "maxIterations": 5
-        }
-      },
-      "id": "de04dbb9-cc21-4c29-8af8-230d1c1c8f4a",
-      "name": "Content Researcher",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        480,
-        -832
-      ],
-      "typeVersion": 2,
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "content": "## **2. Image Retrieval**\nAdjusts Image Generator output and downloads image as binary. ",
-        "height": 828,
-        "width": 580,
-        "color": 6
-      },
-      "id": "0cc8b985-15f5-457d-bdac-55caaa8abb4d",
-      "name": "Sticky Note1",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1776,
-        -1312
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Name",
-              "displayName": "Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Type",
-              "displayName": "Type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        1840,
-        -608
-      ],
-      "id": "6f007dc1-5b11-4db9-85e6-a38697e426d3",
-      "name": "Create a Data Table (one-time)"
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {
-          "includeUnpaired": false
-        }
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        2112,
-        -848
-      ],
-      "id": "fb96a307-c5f8-4f4d-af66-64fdc0ab02af",
-      "name": "Merge for Telegram Preview"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Normalize upstream outputs\nconst contentOut = $('Content creator').first().json.output;\nconst hashtagOut = $('Hashtag generator /SEO').first().json.output;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Normalize hashtags (handles array or object-with-indexes)\nlet hashtags = [];\n\nif (Array.isArray(hashtagOut.Hashtags)) {\n  hashtags = hashtagOut.Hashtags;\n} else if (typeof hashtagOut.Hashtags === 'object') {\n  hashtags = Object.values(hashtagOut.Hashtags);\n}\n\n// Join hashtags into LinkedIn-friendly line\nconst hashtagLine = hashtags.length\n  ? `${hashtags.join(' ')}`\n  : '';\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent,\n    \"hastags\": hashtagLine,\n    \"image description\": contentOut.image_description\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1776,
-        -832
-      ],
-      "id": "4bdab826-fe50-4fdc-b583-d7f6011b60ec",
-      "name": "Concanate Post Content"
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
-              "keyValue": "={{ $json.content_id }}"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "hashtags": "={{ $json.hastags }}",
-            "created_at": "=={{ $now }}",
-            "post_content": "={{ $('Concanate Post Content').item.json[\"post content\"] }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "approval_id",
-              "displayName": "approval_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "hashtags",
-              "displayName": "hashtags",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "post_content",
-              "displayName": "post_content",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "image_url",
-              "displayName": "image_url",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        2336,
-        -848
-      ],
-      "id": "99cc05d9-8bd4-4ef2-ab6e-c092a57f0392",
-      "name": "Upsert row(s)"
     },
     {
       "parameters": {
@@ -401,7 +42,208 @@
         -832
       ],
       "id": "9d81c536-ed94-432c-af5e-4b72358d46bb",
-      "name": "When Executed by Another Workflow"
+      "name": "Inbound Request"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "perplexity-sonar-pro",
+          "mode": "list",
+          "cachedResultName": "perplexity-sonar-pro"
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "d5fe7e68-a84b-493b-b16c-edea687cf207",
+      "name": "LLM Sonar Pro",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        480,
+        -672
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "XStdg09nSm0XQbuY",
+          "name": "POE OpanAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a Content Researcher Assistant supporting an experienced Embedded Software Engineer operating in safety-critical and hardware-centric environments (aviation, automotive, industrial, robotics).\n\nYour task is to generate high-value technical content topics derived from real-world embedded engineering problems, with an emphasis on system responsibility, production realism, and review-level insight.\n\nThese topics will later be expanded into technical threads (multi-post, structured, explanatory) by another agent.\n\nAudience Targeting (All Levels)\n\nEach topic must be relevant to all three experience levels:\n\nJunior Engineers — learning what actually matters in production systems\n\nSenior Engineers — refining judgment, debugging intuition, and architectural trade-offs\n\nTech Leads / Reviewers — decision-making, risk ownership, design reviews, failure prevention\n\nAlways think:\n\n“What should an experienced engineer warn the team about before approving this?”\n\nCore Technical Domains (Non-Exhaustive)\n\nTopics should correlate with practical, real-world issues, including but not limited to:\n\nProgramming & Code Quality\n\nC / C++ in embedded & safety-critical systems\n\nUndefined behavior, edge cases, compiler assumptions\n\nStatic analysis (MISRA, CERT-C/C++, clang-tidy, PC-Lint)\n\nCode review traps & false confidence patterns\n\nDebugging & Failure Analysis\n\nBug tracing on real hardware\n\nRace conditions, timing bugs, memory corruption\n\nPost-mortems: why this escaped tests\n\nLogs vs traces vs registers vs physical signals\n\nTesting & Validation\n\nLimits of unit testing in embedded systems\n\nCI/CD illusions for firmware\n\nSIL / PIL / HIL environments — strengths and blind spots\n\nTests that pass but systems that still fail in the field\n\nRTOS & Concurrency\n\nScheduling, ISR misuse, priority inversion\n\nDeadlocks that only happen under field conditions\n\nRTOS configuration risks often overlooked\n\nHardware Interaction\n\nDriver integration failures\n\nLogic analyzer / oscilloscope misuse by software engineers\n\nTiming assumptions vs physical reality\n\nSystems & Safety\n\nSafety-critical mindset (aviation / automotive)\n\nSecure boot, bootloaders, firmware update strategies\n\nCommunication protocols (CAN, SPI, UART, Ethernet, wireless)\n\nSensor integration & sensor fusion pitfalls\n\nLegacy & Reality\n\nReverse engineering undocumented systems\n\nInheriting unsafe or fragile architectures\n\n“We can’t rewrite this” technical decisions\n\nOutput Requirements (Per Topic)\n\nFor each topic, generate all of the following sections:\n\nTopic Title / Core Idea\n\nClear, concrete, and specific\n\nThread-worthy headline (not a blog title)\n\nAvoid buzzwords and generic phrasing\n\nReal-World Example (Professional Context)\n\nA short, realistic scenario from a professional embedded environment\n\nShould resemble a bug report, failed test, field issue, or review finding\n\nMust be plausible in production systems\n\nWhy This Matters (Rationale)\n\n1–2 sentences explaining the risk, failure mode, or system blind spot\n\nFocus on consequences, not just correctness\n\nGeneralized Solution or Mitigation Strategy\n\nA generalized approach, not just a fix for the example\n\nMay include architecture, review heuristics, testing strategies, or defensive coding\n\nShould answer: “How should this class of problems be prevented or detected early?”\n\nSuggested Angle / Hook (Thread-Optimized)\n\nA technical thread opener\n\nInvites a multi-post explanation\n\nSignals experience and accountability\n\nSlightly contrarian only when grounded in reality\n\nFormat Bias\n\nFavor technical threads that expand naturally into:\n\nStep-by-step reasoning\n\nCause → effect → mitigation\n\nMental models or diagrams\n\nWhat should be done differently next time\n\nAvoid:\n\nOne-liner tips\n\nMotivational or generic content\n\nTool marketing or shallow comparisons\n\nStyle & Tone\n\nExperience-driven, not academic\n\nPractical > theoretical\n\nSpecific > abstract\n\nCalm authority, not hype\n\nAssume the reader:\n\nHas shipped firmware\n\nHas broken hardware\n\nHas reviewed risky code late at night\n\nOptional Enhancements\n\nYou may optionally:\n\nTag topics as Junior lesson, Senior refinement, or Review-critical\n\nFlag topics suited for deep technical threads, post-mortems, or architecture reviews\n\nOutput format requirements:\n\nReturn valid JSON only.\nDo not include markdown, commentary, explanations, references, citations, URLs, or footnotes.\n\nThe response must be a JSON array with exactly 5 items!\n\nEach item must be a JSON object with exactly these keys:\n\n\"title\" — concise, specific, thread-worthy headline\n\n\"rationale\" — 1 sentence only explaining why this matters in production systems\n\n\"hook\" — a strong, experience-driven opening line for a technical thread\n\nStrict rules\n\nNo external sources\n\nNo citations or reference sections\n\nNo emojis\n\nNo additional keys\n\nKeep language practical and production-realistic\n\nEach field must be ≤ 40 words\n\nExpected structure\n[\n  {\n    \"title\": \"<string>\",\n    \"rationale\": \"<string>\",\n    \"hook\": \"<string>\"\n  }\n]\n\n\nIf you cannot comply exactly, return:\n\n{ \"error\": \"invalid_output\" }",
+        "hasOutputParser": true,
+        "options": {
+          "maxIterations": 5
+        }
+      },
+      "id": "de04dbb9-cc21-4c29-8af8-230d1c1c8f4a",
+      "name": "Topic Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        480,
+        -832
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code node (JavaScript)\n * Transforms input like:\n *   [{ output: \"[{...}]\\n\\n---\\n\\n**References:** ...\"}]\n * into:\n *   [{ action: \"parse\", response: { output: [ ... ] } }]\n */\n\nfunction extractFirstJsonArray(text) {\n  if (typeof text !== 'string') return null;\n\n  // Find first '['\n  const start = text.indexOf('[');\n  if (start < 0) return null;\n\n  // Scan forward to find the matching closing ']' for the first JSON array.\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < text.length; i++) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escape) {\n        escape = false;\n      } else if (ch === '\\\\') {\n        escape = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === '[') depth++;\n    if (ch === ']') depth--;\n\n    if (depth === 0) {\n      // i is the index of the matching closing bracket\n      return text.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeJsonParse(jsonText) {\n  try {\n    return JSON.parse(jsonText);\n  } catch (e) {\n    return null;\n  }\n}\n\n// Input handling: support either $json.output OR a nested \"output\" string.\nconst input = $input.all();\n\nconst outItems = [];\n\nfor (const item of input) {\n  const j = item.json ?? {};\n\n  // Common cases:\n  // 1) j.output is already an array -> keep it\n  // 2) j.output is a string containing JSON + refs -> extract JSON array and parse\n  // 3) j.output is missing but j.response?.output exists -> keep it\n  let topics = null;\n\n  if (Array.isArray(j.output)) {\n    topics = j.output;\n  } else if (typeof j.output === 'string') {\n    const arrText = extractFirstJsonArray(j.output);\n    if (arrText) topics = safeJsonParse(arrText);\n  } else if (j.response && Array.isArray(j.response.output)) {\n    topics = j.response.output;\n  }\n\n  // Validate shape: should be an array of objects with title/rationale/hook\n  if (!Array.isArray(topics)) {\n    outItems.push({\n      json: {\n        action: \"parse\",\n        response: { output: [] },\n        error: \"Could not parse topics array from input\",\n        rawPreview: typeof j.output === 'string' ? j.output.slice(0, 300) : null,\n      }\n    });\n    continue;\n  }\n\n  // Clean each topic: keep only the three keys, coerce to strings, drop nulls\n  const cleaned = topics\n    .filter(t => t && typeof t === 'object')\n    .map(t => ({\n      title: String(t.title ?? \"\").trim(),\n      rationale: String(t.rationale ?? \"\").trim(),\n      hook: String(t.hook ?? \"\").trim(),\n    }))\n    .filter(t => t.title || t.rationale || t.hook);\n\n  outItems.push({\n    json: {\n      action: \"parse\",\n      response: {\n        output: cleaned\n      }\n    }\n  });\n}\n\nreturn outItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -832
+      ],
+      "id": "85da0106-c4f0-422c-85f2-da2a1d58bf84",
+      "name": "Parse Topics JSON"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "id": "f279e89e-89d7-4045-9341-6540bd42b15e",
+      "name": "LLM GPT-5",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        944,
+        -656
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "XStdg09nSm0XQbuY",
+          "name": "POE OpanAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
+      },
+      "id": "37d3300d-95d6-4a0d-93d0-ee5dc1ad9f15",
+      "name": "Parse Post JSON",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        1088,
+        -656
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a LinkedIn content creator and copywriter.\n\nINPUT:\nTitle/Idea: {{ $json.response.output[0].title }}\nRationale: {{ $json.response.output[0].rationale }}\nHook: {{ $json.response.output[0].hook }}\n\nWrite a LinkedIn post using the following fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nUse this exact schema:\n{\n  \"topic\": \"string\",\n  \"what_happened\": \"string\",\n  \"why_it_happened\": \"string\",\n  \"solution_and_takeaway\": \"string\",\n  \"image_description\": \"string\"\n}\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "id": "f75378f6-d4df-4bd5-8cea-5811e2dcdec7",
+      "name": "Write Post JSON",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        944,
+        -832
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "bf3483f6-dac2-4047-a97c-67f6bc0dbb9b",
+      "name": "LLM 4o Mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1296,
+        -656
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "XStdg09nSm0XQbuY",
+          "name": "POE OpanAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"post title\": \"Exciting New Feature Launch 🚀\",\n  \"post content\": \"After months of collaboration, testing, and fine-tuning, we're thrilled to introduce our latest product feature: Smart Insights. It helps users uncover meaningful patterns in their data with just a few clicks. This wouldn't have been possible without our incredible team and supportive community. We're excited for what's next — and we'd love your feedback!\",\n  \"image description\": \"A laptop screen showcasing the new Smart Insights dashboard with colorful charts and graphs, surrounded by a team clapping in the background.\",\n\"Hashtags\":[\"#AI\",\"#Automation\"]\n}"
+      },
+      "id": "df95ff58-3a19-41d1-88db-761717832886",
+      "name": "Parse Hashtags",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        1440,
+        -656
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an SEO specialist for LinkedIn. Your task is to generate highly relevant and effective hashtags for the following post. Consider the post's content, target audience, and current LinkedIn trends to maximize visibility and engagement.\n\n<post_title>{{ $json.output.topic }}</post_title>\n<post_content>{{ $json.output.what_happened + ' ' + $json.output.why_it_happened + ' ' + $json.output.solution_and_takeaway }}</post_content>\n\nPlease generate:\n1. **3-5 broad, high-volume hashtags** (e.g., #AI, #Embedded, #Safety, #Aviation, #Automotive)\n2. **3-5 niche-specific hashtags** that are directly relevant to the post's core topic (e.g., #Debugging, #Xilinx, #VSC)\n3. **1-2 trending/topical hashtags** if applicable (e.g., #FutureOfWork, #DigitalTransformation)\n\nPresent them as a comma-separated list.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "282b2160-50ec-4887-a0e2-59ba80978f20",
+      "name": "Generate Hashtags",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1296,
+        -832
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f6958f15-72df-4307-8266-8723f90ff9cd",
+              "name": "content_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
+              "name": "width",
+              "type": "string",
+              "value": "1200"
+            },
+            {
+              "id": "da6d305f-aece-49bd-ae02-52df59915c60",
+              "name": "height",
+              "type": "string",
+              "value": "627"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a65de9f4-4a1f-4987-84d5-128d22c62e52",
+      "name": "Set Image Size",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1504,
+        -1072
+      ],
+      "typeVersion": 3.4
     },
     {
       "parameters": {
@@ -425,7 +267,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "content_id": "={{ $json.content_id }}",
-            "image_description": "={{ $('Content creator').item.json.output.image_description }}",
+            "image_description": "={{ $('Write Post JSON').item.json.output.image_description }}",
             "width": "={{ $json.width }}",
             "height": "={{ $json.height }}"
           },
@@ -534,7 +376,7 @@
         -1072
       ],
       "id": "a245cd7b-0726-4829-8255-2698d45d8e7e",
-      "name": "Upsert row(s)1"
+      "name": "Save Image Params"
     },
     {
       "parameters": {
@@ -605,7 +447,129 @@
         -1072
       ],
       "id": "35dcf733-7ce9-45da-b899-ee3b8e8b1dda",
-      "name": "Call 'My workflow 2'"
+      "name": "Run Image Gen"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize upstream outputs\nconst contentOut = $('Write Post JSON').first().json.output;\nconst hashtagOut = $('Generate Hashtags').first().json.output;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Normalize hashtags (handles array or object-with-indexes)\nlet hashtags = [];\n\nif (Array.isArray(hashtagOut.Hashtags)) {\n  hashtags = hashtagOut.Hashtags;\n} else if (typeof hashtagOut.Hashtags === 'object') {\n  hashtags = Object.values(hashtagOut.Hashtags);\n}\n\n// Join hashtags into LinkedIn-friendly line\nconst hashtagLine = hashtags.length\n  ? `${hashtags.join(' ')}`\n  : '';\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent,\n    \"hastags\": hashtagLine,\n    \"image description\": contentOut.image_description\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        -832
+      ],
+      "id": "4bdab826-fe50-4fdc-b583-d7f6011b60ec",
+      "name": "Assemble Post"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2112,
+        -848
+      ],
+      "id": "fb96a307-c5f8-4f4d-af66-64fdc0ab02af",
+      "name": "Merge Post+Image"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "content_id",
+              "keyValue": "={{ $json.content_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "hashtags": "={{ $json.hastags }}",
+            "created_at": "=={{ $now }}",
+            "post_content": "={{ $('Assemble Post').item.json[\"post content\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "approval_id",
+              "displayName": "approval_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2336,
+        -848
+      ],
+      "id": "99cc05d9-8bd4-4ef2-ab6e-c092a57f0392",
+      "name": "Save Draft"
     },
     {
       "parameters": {
@@ -656,260 +620,248 @@
         -848
       ],
       "id": "a72108bb-d664-4153-81b3-4d5f33bbfea5",
-      "name": "Call 'Telegram Post Preview'"
+      "name": "Send TG Preview"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
             {
-              "id": "f6958f15-72df-4307-8266-8723f90ff9cd",
-              "name": "content_id",
-              "value": "={{ $execution.id }}",
-              "type": "string"
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
             },
             {
-              "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
-              "name": "width",
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
               "type": "string",
-              "value": "1200"
-            },
-            {
-              "id": "da6d305f-aece-49bd-ae02-52df59915c60",
-              "name": "height",
-              "type": "string",
-              "value": "627"
+              "readOnly": false,
+              "removed": true
             }
-          ]
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
-      "id": "a65de9f4-4a1f-4987-84d5-128d22c62e52",
-      "name": "Image Values",
-      "type": "n8n-nodes-base.set",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
-        1504,
-        -1072
+        1840,
+        -608
       ],
-      "typeVersion": 3.4
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n\"title\": \"AI as Your First Content Hire: Why Founders Shouldn't Wait to Outsource Creation\",\n\"rationale\": \"Most solopreneurs delay content scaling because they think hiring a ghostwriter is the next step — but AI can handle 80% with proper systems. This shifts content from a creative bottleneck to a scalable growth lever.\",\n\"hook\": \"Ghostwriters are outdated. Train GPT once, and it ships LinkedIn gold in your voice daily. Welcome to hands-free thought leadership.\"\n          }"
-      },
-      "id": "028c655f-0c50-4642-99c8-db0186a24d29",
-      "name": "Structured Output Parser",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "position": [
-        624,
-        -560
-      ],
-      "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "jsCode": "/**\n * n8n Code node (JavaScript)\n * Transforms input like:\n *   [{ output: \"[{...}]\\n\\n---\\n\\n**References:** ...\"}]\n * into:\n *   [{ action: \"parse\", response: { output: [ ... ] } }]\n */\n\nfunction extractFirstJsonArray(text) {\n  if (typeof text !== 'string') return null;\n\n  // Find first '['\n  const start = text.indexOf('[');\n  if (start < 0) return null;\n\n  // Scan forward to find the matching closing ']' for the first JSON array.\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < text.length; i++) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escape) {\n        escape = false;\n      } else if (ch === '\\\\') {\n        escape = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === '[') depth++;\n    if (ch === ']') depth--;\n\n    if (depth === 0) {\n      // i is the index of the matching closing bracket\n      return text.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeJsonParse(jsonText) {\n  try {\n    return JSON.parse(jsonText);\n  } catch (e) {\n    return null;\n  }\n}\n\n// Input handling: support either $json.output OR a nested \"output\" string.\nconst input = $input.all();\n\nconst outItems = [];\n\nfor (const item of input) {\n  const j = item.json ?? {};\n\n  // Common cases:\n  // 1) j.output is already an array -> keep it\n  // 2) j.output is a string containing JSON + refs -> extract JSON array and parse\n  // 3) j.output is missing but j.response?.output exists -> keep it\n  let topics = null;\n\n  if (Array.isArray(j.output)) {\n    topics = j.output;\n  } else if (typeof j.output === 'string') {\n    const arrText = extractFirstJsonArray(j.output);\n    if (arrText) topics = safeJsonParse(arrText);\n  } else if (j.response && Array.isArray(j.response.output)) {\n    topics = j.response.output;\n  }\n\n  // Validate shape: should be an array of objects with title/rationale/hook\n  if (!Array.isArray(topics)) {\n    outItems.push({\n      json: {\n        action: \"parse\",\n        response: { output: [] },\n        error: \"Could not parse topics array from input\",\n        rawPreview: typeof j.output === 'string' ? j.output.slice(0, 300) : null,\n      }\n    });\n    continue;\n  }\n\n  // Clean each topic: keep only the three keys, coerce to strings, drop nulls\n  const cleaned = topics\n    .filter(t => t && typeof t === 'object')\n    .map(t => ({\n      title: String(t.title ?? \"\").trim(),\n      rationale: String(t.rationale ?? \"\").trim(),\n      hook: String(t.hook ?? \"\").trim(),\n    }))\n    .filter(t => t.title || t.rationale || t.hook);\n\n  outItems.push({\n    json: {\n      action: \"parse\",\n      response: {\n        output: cleaned\n      }\n    }\n  });\n}\n\nreturn outItems;\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        784,
-        -832
-      ],
-      "id": "85da0106-c4f0-422c-85f2-da2a1d58bf84",
-      "name": "Code in JavaScript"
+      "id": "6f007dc1-5b11-4db9-85e6-a38697e426d3",
+      "name": "Create Drafts Table (or delete after setup)"
     }
   ],
   "connections": {
-    "Content creator": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Inbound Request": {
       "main": [
         [
           {
-            "node": "Hashtag generator /SEO",
+            "node": "Topic Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Sonar Pro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic Generator": {
+      "main": [
+        [
+          {
+            "node": "Parse Topics JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Topics JSON": {
+      "main": [
+        [
+          {
+            "node": "Write Post JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM GPT-5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Post JSON",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Post JSON": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Write Post JSON",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Post JSON": {
+      "main": [
+        [
+          {
+            "node": "Generate Hashtags",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Image Values",
+            "node": "Set Image Size",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model": {
+    "LLM 4o Mini": {
       "ai_languageModel": [
         [
           {
-            "node": "Content Researcher",
+            "node": "Generate Hashtags",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Content creator",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model2": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Hashtag generator /SEO",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Hashtag generator /SEO": {
-      "main": [
-        [
-          {
-            "node": "Concanate Post Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Structured Output Parser1": {
+    "Parse Hashtags": {
       "ai_outputParser": [
         [
           {
-            "node": "Content creator",
+            "node": "Generate Hashtags",
             "type": "ai_outputParser",
             "index": 0
           }
         ]
       ]
     },
-    "Structured Output Parser2": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Hashtag generator /SEO",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Content Researcher": {
+    "Generate Hashtags": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "Assemble Post",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create a Data Table (one-time)": {
-      "main": [
-        []
-      ]
-    },
-    "Merge for Telegram Preview": {
+    "Set Image Size": {
       "main": [
         [
           {
-            "node": "Upsert row(s)",
+            "node": "Save Image Params",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Concanate Post Content": {
+    "Save Image Params": {
       "main": [
         [
           {
-            "node": "Merge for Telegram Preview",
+            "node": "Run Image Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Image Gen": {
+      "main": [
+        [
+          {
+            "node": "Merge Post+Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Post": {
+      "main": [
+        [
+          {
+            "node": "Merge Post+Image",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "Upsert row(s)": {
+    "Merge Post+Image": {
       "main": [
         [
           {
-            "node": "Call 'Telegram Post Preview'",
+            "node": "Save Draft",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "When Executed by Another Workflow": {
+    "Save Draft": {
       "main": [
         [
           {
-            "node": "Content Researcher",
+            "node": "Send TG Preview",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upsert row(s)1": {
+    "Create Drafts Table (or delete after setup)": {
       "main": [
-        [
-          {
-            "node": "Call 'My workflow 2'",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Call 'My workflow 2'": {
-      "main": [
-        [
-          {
-            "node": "Merge for Telegram Preview",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Image Values": {
-      "main": [
-        [
-          {
-            "node": "Upsert row(s)1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Structured Output Parser": {
-      "ai_outputParser": [
         []
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Content creator",
-            "type": "main",
-            "index": 0
-          }
-        ]
       ]
     }
   },
@@ -927,7 +879,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {
-    "When Executed by Another Workflow": [
+    "Inbound Request": [
       {
         "json": {
           "text": "/post LINKEDIN"
@@ -938,8 +890,8 @@
       }
     ]
   },
-  "versionId": "840d049f-fe12-476b-850a-91092c9fef47",
-  "activeVersionId": "840d049f-fe12-476b-850a-91092c9fef47",
+  "versionId": "4c5f288b-5bc5-4ef1-9f8f-f8de27bafc6b",
+  "activeVersionId": "4c5f288b-5bc5-4ef1-9f8f-f8de27bafc6b",
   "triggerCount": 0,
   "shared": [
     {
@@ -951,382 +903,23 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-25T15:42:24.000Z",
-    "createdAt": "2026-01-24T06:49:14.725Z",
-    "versionId": "840d049f-fe12-476b-850a-91092c9fef47",
+    "updatedAt": "2026-01-27T18:07:54.000Z",
+    "createdAt": "2026-01-27T18:07:50.857Z",
+    "versionId": "4c5f288b-5bc5-4ef1-9f8f-f8de27bafc6b",
     "workflowId": "mJatCdnL86VthoQD",
     "nodes": [
       {
         "parameters": {
-          "model": {
-            "__rl": true,
-            "value": "perplexity-sonar-pro",
-            "mode": "list",
-            "cachedResultName": "perplexity-sonar-pro"
-          },
-          "options": {
-            "timeout": 60000
-          }
+          "jsonSchemaExample": "{\n\"title\": \"AI as Your First Content Hire: Why Founders Shouldn't Wait to Outsource Creation\",\n\"rationale\": \"Most solopreneurs delay content scaling because they think hiring a ghostwriter is the next step — but AI can handle 80% with proper systems. This shifts content from a creative bottleneck to a scalable growth lever.\",\n\"hook\": \"Ghostwriters are outdated. Train GPT once, and it ships LinkedIn gold in your voice daily. Welcome to hands-free thought leadership.\"\n          }"
         },
-        "id": "d5fe7e68-a84b-493b-b16c-edea687cf207",
-        "name": "OpenAI Chat Model",
-        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-        "position": [
-          480,
-          -672
-        ],
-        "typeVersion": 1.2,
-        "credentials": {
-          "openAiApi": {
-            "id": "XStdg09nSm0XQbuY",
-            "name": "OpenAi account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "promptType": "define",
-          "text": "=You are a LinkedIn content creator and copywriter.\n\nINPUT:\nTitle/Idea: {{ $json.response.output[0].title }}\nRationale: {{ $json.response.output[0].rationale }}\nHook: {{ $json.response.output[0].hook }}\n\nWrite a LinkedIn post using the following fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nUse this exact schema:\n{\n  \"topic\": \"string\",\n  \"what_happened\": \"string\",\n  \"why_it_happened\": \"string\",\n  \"solution_and_takeaway\": \"string\",\n  \"image_description\": \"string\"\n}\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
-          "hasOutputParser": true,
-          "batching": {}
-        },
-        "id": "f75378f6-d4df-4bd5-8cea-5811e2dcdec7",
-        "name": "Content creator",
-        "type": "@n8n/n8n-nodes-langchain.chainLlm",
-        "position": [
-          944,
-          -832
-        ],
-        "typeVersion": 1.7
-      },
-      {
-        "parameters": {
-          "model": {
-            "__rl": true,
-            "value": "gpt-5",
-            "mode": "list",
-            "cachedResultName": "gpt-5"
-          },
-          "options": {}
-        },
-        "id": "f279e89e-89d7-4045-9341-6540bd42b15e",
-        "name": "OpenAI Chat Model1",
-        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-        "position": [
-          944,
-          -656
-        ],
-        "typeVersion": 1.2,
-        "credentials": {
-          "openAiApi": {
-            "id": "XStdg09nSm0XQbuY",
-            "name": "OpenAi account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
-        },
-        "id": "37d3300d-95d6-4a0d-93d0-ee5dc1ad9f15",
-        "name": "Structured Output Parser1",
+        "id": "028c655f-0c50-4642-99c8-db0186a24d29",
+        "name": "Structured Output Parser",
         "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
         "position": [
-          1088,
-          -656
+          624,
+          -560
         ],
         "typeVersion": 1.2
-      },
-      {
-        "parameters": {
-          "promptType": "define",
-          "text": "=You are an SEO specialist for LinkedIn. Your task is to generate highly relevant and effective hashtags for the following post. Consider the post's content, target audience, and current LinkedIn trends to maximize visibility and engagement.\n\n<post_title>{{ $json.output.topic }}</post_title>\n<post_content>{{ $json.output.what_happened + ' ' + $json.output.why_it_happened + ' ' + $json.output.solution_and_takeaway }}</post_content>\n\nPlease generate:\n1. **3-5 broad, high-volume hashtags** (e.g., #AI, #Embedded, #Safety, #Aviation, #Automotive)\n2. **3-5 niche-specific hashtags** that are directly relevant to the post's core topic (e.g., #Debugging, #Xilinx, #VSC)\n3. **1-2 trending/topical hashtags** if applicable (e.g., #FutureOfWork, #DigitalTransformation)\n\nPresent them as a comma-separated list.",
-          "hasOutputParser": true,
-          "options": {}
-        },
-        "id": "282b2160-50ec-4887-a0e2-59ba80978f20",
-        "name": "Hashtag generator /SEO",
-        "type": "@n8n/n8n-nodes-langchain.agent",
-        "position": [
-          1296,
-          -832
-        ],
-        "typeVersion": 2
-      },
-      {
-        "parameters": {
-          "model": {
-            "__rl": true,
-            "mode": "list",
-            "value": "gpt-4o-mini"
-          },
-          "options": {}
-        },
-        "id": "bf3483f6-dac2-4047-a97c-67f6bc0dbb9b",
-        "name": "OpenAI Chat Model2",
-        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-        "position": [
-          1296,
-          -656
-        ],
-        "typeVersion": 1.2,
-        "credentials": {
-          "openAiApi": {
-            "id": "XStdg09nSm0XQbuY",
-            "name": "OpenAi account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "jsonSchemaExample": "{\n  \"post title\": \"Exciting New Feature Launch 🚀\",\n  \"post content\": \"After months of collaboration, testing, and fine-tuning, we're thrilled to introduce our latest product feature: Smart Insights. It helps users uncover meaningful patterns in their data with just a few clicks. This wouldn't have been possible without our incredible team and supportive community. We're excited for what's next — and we'd love your feedback!\",\n  \"image description\": \"A laptop screen showcasing the new Smart Insights dashboard with colorful charts and graphs, surrounded by a team clapping in the background.\",\n\"Hashtags\":[\"#AI\",\"#Automation\"]\n}"
-        },
-        "id": "df95ff58-3a19-41d1-88db-761717832886",
-        "name": "Structured Output Parser2",
-        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-        "position": [
-          1440,
-          -656
-        ],
-        "typeVersion": 1.2
-      },
-      {
-        "parameters": {
-          "content": "## **3. LinkedIn Post Upload**\nPrepares content (text + hashtags + image) and uploads it to LinkedIn as a post.\n",
-          "height": 828,
-          "width": 1396,
-          "color": 3
-        },
-        "id": "4ff23d94-7af3-4fed-8bcb-5e86e7e83e00",
-        "name": "Sticky Note2",
-        "type": "n8n-nodes-base.stickyNote",
-        "position": [
-          2400,
-          -1312
-        ],
-        "typeVersion": 1
-      },
-      {
-        "parameters": {
-          "content": "## **1. AI Agents**\n***1. Content Researcher***\nProvides couple of potential topics based on prompt provided.\n\n***2. Content Creator***\nSelects one of topics and produces post content and image description. Usually uses stronger AI models.\n\n***3. Image Generator***\nCreates image based of image description using prompt for narrow defining and restrictions to match LinkedIn requirements. \n\n***4. Hashtag Generator***\nBased on content generates most relevant hashtags.",
-          "height": 828,
-          "width": 1172,
-          "color": 4
-        },
-        "id": "527c6e39-74f0-4291-9540-862a9fbf5a53",
-        "name": "Sticky Note",
-        "type": "n8n-nodes-base.stickyNote",
-        "position": [
-          560,
-          -1312
-        ],
-        "typeVersion": 1
-      },
-      {
-        "parameters": {
-          "promptType": "define",
-          "text": "You are a Content Researcher Assistant supporting an experienced Embedded Software Engineer operating in safety-critical and hardware-centric environments (aviation, automotive, industrial, robotics).\n\nYour task is to generate high-value technical content topics derived from real-world embedded engineering problems, with an emphasis on system responsibility, production realism, and review-level insight.\n\nThese topics will later be expanded into technical threads (multi-post, structured, explanatory) by another agent.\n\nAudience Targeting (All Levels)\n\nEach topic must be relevant to all three experience levels:\n\nJunior Engineers — learning what actually matters in production systems\n\nSenior Engineers — refining judgment, debugging intuition, and architectural trade-offs\n\nTech Leads / Reviewers — decision-making, risk ownership, design reviews, failure prevention\n\nAlways think:\n\n“What should an experienced engineer warn the team about before approving this?”\n\nCore Technical Domains (Non-Exhaustive)\n\nTopics should correlate with practical, real-world issues, including but not limited to:\n\nProgramming & Code Quality\n\nC / C++ in embedded & safety-critical systems\n\nUndefined behavior, edge cases, compiler assumptions\n\nStatic analysis (MISRA, CERT-C/C++, clang-tidy, PC-Lint)\n\nCode review traps & false confidence patterns\n\nDebugging & Failure Analysis\n\nBug tracing on real hardware\n\nRace conditions, timing bugs, memory corruption\n\nPost-mortems: why this escaped tests\n\nLogs vs traces vs registers vs physical signals\n\nTesting & Validation\n\nLimits of unit testing in embedded systems\n\nCI/CD illusions for firmware\n\nSIL / PIL / HIL environments — strengths and blind spots\n\nTests that pass but systems that still fail in the field\n\nRTOS & Concurrency\n\nScheduling, ISR misuse, priority inversion\n\nDeadlocks that only happen under field conditions\n\nRTOS configuration risks often overlooked\n\nHardware Interaction\n\nDriver integration failures\n\nLogic analyzer / oscilloscope misuse by software engineers\n\nTiming assumptions vs physical reality\n\nSystems & Safety\n\nSafety-critical mindset (aviation / automotive)\n\nSecure boot, bootloaders, firmware update strategies\n\nCommunication protocols (CAN, SPI, UART, Ethernet, wireless)\n\nSensor integration & sensor fusion pitfalls\n\nLegacy & Reality\n\nReverse engineering undocumented systems\n\nInheriting unsafe or fragile architectures\n\n“We can’t rewrite this” technical decisions\n\nOutput Requirements (Per Topic)\n\nFor each topic, generate all of the following sections:\n\nTopic Title / Core Idea\n\nClear, concrete, and specific\n\nThread-worthy headline (not a blog title)\n\nAvoid buzzwords and generic phrasing\n\nReal-World Example (Professional Context)\n\nA short, realistic scenario from a professional embedded environment\n\nShould resemble a bug report, failed test, field issue, or review finding\n\nMust be plausible in production systems\n\nWhy This Matters (Rationale)\n\n1–2 sentences explaining the risk, failure mode, or system blind spot\n\nFocus on consequences, not just correctness\n\nGeneralized Solution or Mitigation Strategy\n\nA generalized approach, not just a fix for the example\n\nMay include architecture, review heuristics, testing strategies, or defensive coding\n\nShould answer: “How should this class of problems be prevented or detected early?”\n\nSuggested Angle / Hook (Thread-Optimized)\n\nA technical thread opener\n\nInvites a multi-post explanation\n\nSignals experience and accountability\n\nSlightly contrarian only when grounded in reality\n\nFormat Bias\n\nFavor technical threads that expand naturally into:\n\nStep-by-step reasoning\n\nCause → effect → mitigation\n\nMental models or diagrams\n\nWhat should be done differently next time\n\nAvoid:\n\nOne-liner tips\n\nMotivational or generic content\n\nTool marketing or shallow comparisons\n\nStyle & Tone\n\nExperience-driven, not academic\n\nPractical > theoretical\n\nSpecific > abstract\n\nCalm authority, not hype\n\nAssume the reader:\n\nHas shipped firmware\n\nHas broken hardware\n\nHas reviewed risky code late at night\n\nOptional Enhancements\n\nYou may optionally:\n\nTag topics as Junior lesson, Senior refinement, or Review-critical\n\nFlag topics suited for deep technical threads, post-mortems, or architecture reviews\n\nOutput format requirements:\n\nReturn valid JSON only.\nDo not include markdown, commentary, explanations, references, citations, URLs, or footnotes.\n\nThe response must be a JSON array with exactly 5 items!\n\nEach item must be a JSON object with exactly these keys:\n\n\"title\" — concise, specific, thread-worthy headline\n\n\"rationale\" — 1 sentence only explaining why this matters in production systems\n\n\"hook\" — a strong, experience-driven opening line for a technical thread\n\nStrict rules\n\nNo external sources\n\nNo citations or reference sections\n\nNo emojis\n\nNo additional keys\n\nKeep language practical and production-realistic\n\nEach field must be ≤ 40 words\n\nExpected structure\n[\n  {\n    \"title\": \"<string>\",\n    \"rationale\": \"<string>\",\n    \"hook\": \"<string>\"\n  }\n]\n\n\nIf you cannot comply exactly, return:\n\n{ \"error\": \"invalid_output\" }",
-          "hasOutputParser": true,
-          "options": {
-            "maxIterations": 5
-          }
-        },
-        "id": "de04dbb9-cc21-4c29-8af8-230d1c1c8f4a",
-        "name": "Content Researcher",
-        "type": "@n8n/n8n-nodes-langchain.agent",
-        "position": [
-          480,
-          -832
-        ],
-        "typeVersion": 2,
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "content": "## **2. Image Retrieval**\nAdjusts Image Generator output and downloads image as binary. ",
-          "height": 828,
-          "width": 580,
-          "color": 6
-        },
-        "id": "0cc8b985-15f5-457d-bdac-55caaa8abb4d",
-        "name": "Sticky Note1",
-        "type": "n8n-nodes-base.stickyNote",
-        "position": [
-          1776,
-          -1312
-        ],
-        "typeVersion": 1
-      },
-      {
-        "parameters": {
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {},
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "Name",
-                "displayName": "Name",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "Type",
-                "displayName": "Type",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          1840,
-          -608
-        ],
-        "id": "6f007dc1-5b11-4db9-85e6-a38697e426d3",
-        "name": "Create a Data Table (one-time)"
-      },
-      {
-        "parameters": {
-          "mode": "combine",
-          "combineBy": "combineByPosition",
-          "options": {
-            "includeUnpaired": false
-          }
-        },
-        "type": "n8n-nodes-base.merge",
-        "typeVersion": 3.2,
-        "position": [
-          2112,
-          -848
-        ],
-        "id": "fb96a307-c5f8-4f4d-af66-64fdc0ab02af",
-        "name": "Merge for Telegram Preview"
-      },
-      {
-        "parameters": {
-          "jsCode": "// Normalize upstream outputs\nconst contentOut = $('Content creator').first().json.output;\nconst hashtagOut = $('Hashtag generator /SEO').first().json.output;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Normalize hashtags (handles array or object-with-indexes)\nlet hashtags = [];\n\nif (Array.isArray(hashtagOut.Hashtags)) {\n  hashtags = hashtagOut.Hashtags;\n} else if (typeof hashtagOut.Hashtags === 'object') {\n  hashtags = Object.values(hashtagOut.Hashtags);\n}\n\n// Join hashtags into LinkedIn-friendly line\nconst hashtagLine = hashtags.length\n  ? `${hashtags.join(' ')}`\n  : '';\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent,\n    \"hastags\": hashtagLine,\n    \"image description\": contentOut.image_description\n  }\n}];\n"
-        },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          1776,
-          -832
-        ],
-        "id": "4bdab826-fe50-4fdc-b583-d7f6011b60ec",
-        "name": "Concanate Post Content"
-      },
-      {
-        "parameters": {
-          "operation": "upsert",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "content_id",
-                "keyValue": "={{ $json.content_id }}"
-              }
-            ]
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "hashtags": "={{ $json.hastags }}",
-              "created_at": "=={{ $now }}",
-              "post_content": "={{ $('Concanate Post Content').item.json[\"post content\"] }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "approval_id",
-                "displayName": "approval_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "hashtags",
-                "displayName": "hashtags",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "post_content",
-                "displayName": "post_content",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "image_url",
-                "displayName": "image_url",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "created_at",
-                "displayName": "created_at",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          2336,
-          -848
-        ],
-        "id": "99cc05d9-8bd4-4ef2-ab6e-c092a57f0392",
-        "name": "Upsert row(s)"
       },
       {
         "parameters": {
@@ -1351,7 +944,208 @@
           -832
         ],
         "id": "9d81c536-ed94-432c-af5e-4b72358d46bb",
-        "name": "When Executed by Another Workflow"
+        "name": "Inbound Request"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "perplexity-sonar-pro",
+            "mode": "list",
+            "cachedResultName": "perplexity-sonar-pro"
+          },
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "id": "d5fe7e68-a84b-493b-b16c-edea687cf207",
+        "name": "LLM Sonar Pro",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          480,
+          -672
+        ],
+        "typeVersion": 1.2,
+        "credentials": {
+          "openAiApi": {
+            "id": "XStdg09nSm0XQbuY",
+            "name": "POE OpanAI API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "You are a Content Researcher Assistant supporting an experienced Embedded Software Engineer operating in safety-critical and hardware-centric environments (aviation, automotive, industrial, robotics).\n\nYour task is to generate high-value technical content topics derived from real-world embedded engineering problems, with an emphasis on system responsibility, production realism, and review-level insight.\n\nThese topics will later be expanded into technical threads (multi-post, structured, explanatory) by another agent.\n\nAudience Targeting (All Levels)\n\nEach topic must be relevant to all three experience levels:\n\nJunior Engineers — learning what actually matters in production systems\n\nSenior Engineers — refining judgment, debugging intuition, and architectural trade-offs\n\nTech Leads / Reviewers — decision-making, risk ownership, design reviews, failure prevention\n\nAlways think:\n\n“What should an experienced engineer warn the team about before approving this?”\n\nCore Technical Domains (Non-Exhaustive)\n\nTopics should correlate with practical, real-world issues, including but not limited to:\n\nProgramming & Code Quality\n\nC / C++ in embedded & safety-critical systems\n\nUndefined behavior, edge cases, compiler assumptions\n\nStatic analysis (MISRA, CERT-C/C++, clang-tidy, PC-Lint)\n\nCode review traps & false confidence patterns\n\nDebugging & Failure Analysis\n\nBug tracing on real hardware\n\nRace conditions, timing bugs, memory corruption\n\nPost-mortems: why this escaped tests\n\nLogs vs traces vs registers vs physical signals\n\nTesting & Validation\n\nLimits of unit testing in embedded systems\n\nCI/CD illusions for firmware\n\nSIL / PIL / HIL environments — strengths and blind spots\n\nTests that pass but systems that still fail in the field\n\nRTOS & Concurrency\n\nScheduling, ISR misuse, priority inversion\n\nDeadlocks that only happen under field conditions\n\nRTOS configuration risks often overlooked\n\nHardware Interaction\n\nDriver integration failures\n\nLogic analyzer / oscilloscope misuse by software engineers\n\nTiming assumptions vs physical reality\n\nSystems & Safety\n\nSafety-critical mindset (aviation / automotive)\n\nSecure boot, bootloaders, firmware update strategies\n\nCommunication protocols (CAN, SPI, UART, Ethernet, wireless)\n\nSensor integration & sensor fusion pitfalls\n\nLegacy & Reality\n\nReverse engineering undocumented systems\n\nInheriting unsafe or fragile architectures\n\n“We can’t rewrite this” technical decisions\n\nOutput Requirements (Per Topic)\n\nFor each topic, generate all of the following sections:\n\nTopic Title / Core Idea\n\nClear, concrete, and specific\n\nThread-worthy headline (not a blog title)\n\nAvoid buzzwords and generic phrasing\n\nReal-World Example (Professional Context)\n\nA short, realistic scenario from a professional embedded environment\n\nShould resemble a bug report, failed test, field issue, or review finding\n\nMust be plausible in production systems\n\nWhy This Matters (Rationale)\n\n1–2 sentences explaining the risk, failure mode, or system blind spot\n\nFocus on consequences, not just correctness\n\nGeneralized Solution or Mitigation Strategy\n\nA generalized approach, not just a fix for the example\n\nMay include architecture, review heuristics, testing strategies, or defensive coding\n\nShould answer: “How should this class of problems be prevented or detected early?”\n\nSuggested Angle / Hook (Thread-Optimized)\n\nA technical thread opener\n\nInvites a multi-post explanation\n\nSignals experience and accountability\n\nSlightly contrarian only when grounded in reality\n\nFormat Bias\n\nFavor technical threads that expand naturally into:\n\nStep-by-step reasoning\n\nCause → effect → mitigation\n\nMental models or diagrams\n\nWhat should be done differently next time\n\nAvoid:\n\nOne-liner tips\n\nMotivational or generic content\n\nTool marketing or shallow comparisons\n\nStyle & Tone\n\nExperience-driven, not academic\n\nPractical > theoretical\n\nSpecific > abstract\n\nCalm authority, not hype\n\nAssume the reader:\n\nHas shipped firmware\n\nHas broken hardware\n\nHas reviewed risky code late at night\n\nOptional Enhancements\n\nYou may optionally:\n\nTag topics as Junior lesson, Senior refinement, or Review-critical\n\nFlag topics suited for deep technical threads, post-mortems, or architecture reviews\n\nOutput format requirements:\n\nReturn valid JSON only.\nDo not include markdown, commentary, explanations, references, citations, URLs, or footnotes.\n\nThe response must be a JSON array with exactly 5 items!\n\nEach item must be a JSON object with exactly these keys:\n\n\"title\" — concise, specific, thread-worthy headline\n\n\"rationale\" — 1 sentence only explaining why this matters in production systems\n\n\"hook\" — a strong, experience-driven opening line for a technical thread\n\nStrict rules\n\nNo external sources\n\nNo citations or reference sections\n\nNo emojis\n\nNo additional keys\n\nKeep language practical and production-realistic\n\nEach field must be ≤ 40 words\n\nExpected structure\n[\n  {\n    \"title\": \"<string>\",\n    \"rationale\": \"<string>\",\n    \"hook\": \"<string>\"\n  }\n]\n\n\nIf you cannot comply exactly, return:\n\n{ \"error\": \"invalid_output\" }",
+          "hasOutputParser": true,
+          "options": {
+            "maxIterations": 5
+          }
+        },
+        "id": "de04dbb9-cc21-4c29-8af8-230d1c1c8f4a",
+        "name": "Topic Generator",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "position": [
+          480,
+          -832
+        ],
+        "typeVersion": 2,
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "/**\n * n8n Code node (JavaScript)\n * Transforms input like:\n *   [{ output: \"[{...}]\\n\\n---\\n\\n**References:** ...\"}]\n * into:\n *   [{ action: \"parse\", response: { output: [ ... ] } }]\n */\n\nfunction extractFirstJsonArray(text) {\n  if (typeof text !== 'string') return null;\n\n  // Find first '['\n  const start = text.indexOf('[');\n  if (start < 0) return null;\n\n  // Scan forward to find the matching closing ']' for the first JSON array.\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < text.length; i++) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escape) {\n        escape = false;\n      } else if (ch === '\\\\') {\n        escape = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === '[') depth++;\n    if (ch === ']') depth--;\n\n    if (depth === 0) {\n      // i is the index of the matching closing bracket\n      return text.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeJsonParse(jsonText) {\n  try {\n    return JSON.parse(jsonText);\n  } catch (e) {\n    return null;\n  }\n}\n\n// Input handling: support either $json.output OR a nested \"output\" string.\nconst input = $input.all();\n\nconst outItems = [];\n\nfor (const item of input) {\n  const j = item.json ?? {};\n\n  // Common cases:\n  // 1) j.output is already an array -> keep it\n  // 2) j.output is a string containing JSON + refs -> extract JSON array and parse\n  // 3) j.output is missing but j.response?.output exists -> keep it\n  let topics = null;\n\n  if (Array.isArray(j.output)) {\n    topics = j.output;\n  } else if (typeof j.output === 'string') {\n    const arrText = extractFirstJsonArray(j.output);\n    if (arrText) topics = safeJsonParse(arrText);\n  } else if (j.response && Array.isArray(j.response.output)) {\n    topics = j.response.output;\n  }\n\n  // Validate shape: should be an array of objects with title/rationale/hook\n  if (!Array.isArray(topics)) {\n    outItems.push({\n      json: {\n        action: \"parse\",\n        response: { output: [] },\n        error: \"Could not parse topics array from input\",\n        rawPreview: typeof j.output === 'string' ? j.output.slice(0, 300) : null,\n      }\n    });\n    continue;\n  }\n\n  // Clean each topic: keep only the three keys, coerce to strings, drop nulls\n  const cleaned = topics\n    .filter(t => t && typeof t === 'object')\n    .map(t => ({\n      title: String(t.title ?? \"\").trim(),\n      rationale: String(t.rationale ?? \"\").trim(),\n      hook: String(t.hook ?? \"\").trim(),\n    }))\n    .filter(t => t.title || t.rationale || t.hook);\n\n  outItems.push({\n    json: {\n      action: \"parse\",\n      response: {\n        output: cleaned\n      }\n    }\n  });\n}\n\nreturn outItems;\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          784,
+          -832
+        ],
+        "id": "85da0106-c4f0-422c-85f2-da2a1d58bf84",
+        "name": "Parse Topics JSON"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-5",
+            "mode": "list",
+            "cachedResultName": "gpt-5"
+          },
+          "options": {}
+        },
+        "id": "f279e89e-89d7-4045-9341-6540bd42b15e",
+        "name": "LLM GPT-5",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          944,
+          -656
+        ],
+        "typeVersion": 1.2,
+        "credentials": {
+          "openAiApi": {
+            "id": "XStdg09nSm0XQbuY",
+            "name": "POE OpanAI API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
+        },
+        "id": "37d3300d-95d6-4a0d-93d0-ee5dc1ad9f15",
+        "name": "Parse Post JSON",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "position": [
+          1088,
+          -656
+        ],
+        "typeVersion": 1.2
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=You are a LinkedIn content creator and copywriter.\n\nINPUT:\nTitle/Idea: {{ $json.response.output[0].title }}\nRationale: {{ $json.response.output[0].rationale }}\nHook: {{ $json.response.output[0].hook }}\n\nWrite a LinkedIn post using the following fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nUse this exact schema:\n{\n  \"topic\": \"string\",\n  \"what_happened\": \"string\",\n  \"why_it_happened\": \"string\",\n  \"solution_and_takeaway\": \"string\",\n  \"image_description\": \"string\"\n}\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+          "hasOutputParser": true,
+          "batching": {}
+        },
+        "id": "f75378f6-d4df-4bd5-8cea-5811e2dcdec7",
+        "name": "Write Post JSON",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "position": [
+          944,
+          -832
+        ],
+        "typeVersion": 1.7
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4o-mini"
+          },
+          "options": {}
+        },
+        "id": "bf3483f6-dac2-4047-a97c-67f6bc0dbb9b",
+        "name": "LLM 4o Mini",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          1296,
+          -656
+        ],
+        "typeVersion": 1.2,
+        "credentials": {
+          "openAiApi": {
+            "id": "XStdg09nSm0XQbuY",
+            "name": "POE OpanAI API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"post title\": \"Exciting New Feature Launch 🚀\",\n  \"post content\": \"After months of collaboration, testing, and fine-tuning, we're thrilled to introduce our latest product feature: Smart Insights. It helps users uncover meaningful patterns in their data with just a few clicks. This wouldn't have been possible without our incredible team and supportive community. We're excited for what's next — and we'd love your feedback!\",\n  \"image description\": \"A laptop screen showcasing the new Smart Insights dashboard with colorful charts and graphs, surrounded by a team clapping in the background.\",\n\"Hashtags\":[\"#AI\",\"#Automation\"]\n}"
+        },
+        "id": "df95ff58-3a19-41d1-88db-761717832886",
+        "name": "Parse Hashtags",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "position": [
+          1440,
+          -656
+        ],
+        "typeVersion": 1.2
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=You are an SEO specialist for LinkedIn. Your task is to generate highly relevant and effective hashtags for the following post. Consider the post's content, target audience, and current LinkedIn trends to maximize visibility and engagement.\n\n<post_title>{{ $json.output.topic }}</post_title>\n<post_content>{{ $json.output.what_happened + ' ' + $json.output.why_it_happened + ' ' + $json.output.solution_and_takeaway }}</post_content>\n\nPlease generate:\n1. **3-5 broad, high-volume hashtags** (e.g., #AI, #Embedded, #Safety, #Aviation, #Automotive)\n2. **3-5 niche-specific hashtags** that are directly relevant to the post's core topic (e.g., #Debugging, #Xilinx, #VSC)\n3. **1-2 trending/topical hashtags** if applicable (e.g., #FutureOfWork, #DigitalTransformation)\n\nPresent them as a comma-separated list.",
+          "hasOutputParser": true,
+          "options": {}
+        },
+        "id": "282b2160-50ec-4887-a0e2-59ba80978f20",
+        "name": "Generate Hashtags",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "position": [
+          1296,
+          -832
+        ],
+        "typeVersion": 2
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f6958f15-72df-4307-8266-8723f90ff9cd",
+                "name": "content_id",
+                "value": "={{ $execution.id }}",
+                "type": "string"
+              },
+              {
+                "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
+                "name": "width",
+                "type": "string",
+                "value": "1200"
+              },
+              {
+                "id": "da6d305f-aece-49bd-ae02-52df59915c60",
+                "name": "height",
+                "type": "string",
+                "value": "627"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "a65de9f4-4a1f-4987-84d5-128d22c62e52",
+        "name": "Set Image Size",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          1504,
+          -1072
+        ],
+        "typeVersion": 3.4
       },
       {
         "parameters": {
@@ -1375,7 +1169,7 @@
             "mappingMode": "defineBelow",
             "value": {
               "content_id": "={{ $json.content_id }}",
-              "image_description": "={{ $('Content creator').item.json.output.image_description }}",
+              "image_description": "={{ $('Write Post JSON').item.json.output.image_description }}",
               "width": "={{ $json.width }}",
               "height": "={{ $json.height }}"
             },
@@ -1484,7 +1278,7 @@
           -1072
         ],
         "id": "a245cd7b-0726-4829-8255-2698d45d8e7e",
-        "name": "Upsert row(s)1"
+        "name": "Save Image Params"
       },
       {
         "parameters": {
@@ -1555,7 +1349,129 @@
           -1072
         ],
         "id": "35dcf733-7ce9-45da-b899-ee3b8e8b1dda",
-        "name": "Call 'My workflow 2'"
+        "name": "Run Image Gen"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normalize upstream outputs\nconst contentOut = $('Write Post JSON').first().json.output;\nconst hashtagOut = $('Generate Hashtags').first().json.output;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Normalize hashtags (handles array or object-with-indexes)\nlet hashtags = [];\n\nif (Array.isArray(hashtagOut.Hashtags)) {\n  hashtags = hashtagOut.Hashtags;\n} else if (typeof hashtagOut.Hashtags === 'object') {\n  hashtags = Object.values(hashtagOut.Hashtags);\n}\n\n// Join hashtags into LinkedIn-friendly line\nconst hashtagLine = hashtags.length\n  ? `${hashtags.join(' ')}`\n  : '';\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent,\n    \"hastags\": hashtagLine,\n    \"image description\": contentOut.image_description\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1776,
+          -832
+        ],
+        "id": "4bdab826-fe50-4fdc-b583-d7f6011b60ec",
+        "name": "Assemble Post"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "options": {
+            "includeUnpaired": false
+          }
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          2112,
+          -848
+        ],
+        "id": "fb96a307-c5f8-4f4d-af66-64fdc0ab02af",
+        "name": "Merge Post+Image"
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "content_id",
+                "keyValue": "={{ $json.content_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "hashtags": "={{ $json.hastags }}",
+              "created_at": "=={{ $now }}",
+              "post_content": "={{ $('Assemble Post').item.json[\"post content\"] }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "approval_id",
+                "displayName": "approval_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "hashtags",
+                "displayName": "hashtags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "post_content",
+                "displayName": "post_content",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "image_url",
+                "displayName": "image_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          2336,
+          -848
+        ],
+        "id": "99cc05d9-8bd4-4ef2-ab6e-c092a57f0392",
+        "name": "Save Draft"
       },
       {
         "parameters": {
@@ -1606,265 +1522,253 @@
           -848
         ],
         "id": "a72108bb-d664-4153-81b3-4d5f33bbfea5",
-        "name": "Call 'Telegram Post Preview'"
+        "name": "Send TG Preview"
       },
       {
         "parameters": {
-          "assignments": {
-            "assignments": [
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
               {
-                "id": "f6958f15-72df-4307-8266-8723f90ff9cd",
-                "name": "content_id",
-                "value": "={{ $execution.id }}",
-                "type": "string"
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
               },
               {
-                "id": "aa80cd68-1c82-4032-b1d7-e098856eec38",
-                "name": "width",
+                "id": "Type",
+                "displayName": "Type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
                 "type": "string",
-                "value": "1200"
-              },
-              {
-                "id": "da6d305f-aece-49bd-ae02-52df59915c60",
-                "name": "height",
-                "type": "string",
-                "value": "627"
+                "readOnly": false,
+                "removed": true
               }
-            ]
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
           },
           "options": {}
         },
-        "id": "a65de9f4-4a1f-4987-84d5-128d22c62e52",
-        "name": "Image Values",
-        "type": "n8n-nodes-base.set",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
         "position": [
-          1504,
-          -1072
+          1840,
+          -608
         ],
-        "typeVersion": 3.4
-      },
-      {
-        "parameters": {
-          "jsonSchemaExample": "{\n\"title\": \"AI as Your First Content Hire: Why Founders Shouldn't Wait to Outsource Creation\",\n\"rationale\": \"Most solopreneurs delay content scaling because they think hiring a ghostwriter is the next step — but AI can handle 80% with proper systems. This shifts content from a creative bottleneck to a scalable growth lever.\",\n\"hook\": \"Ghostwriters are outdated. Train GPT once, and it ships LinkedIn gold in your voice daily. Welcome to hands-free thought leadership.\"\n          }"
-        },
-        "id": "028c655f-0c50-4642-99c8-db0186a24d29",
-        "name": "Structured Output Parser",
-        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-        "position": [
-          624,
-          -560
-        ],
-        "typeVersion": 1.2
-      },
-      {
-        "parameters": {
-          "jsCode": "/**\n * n8n Code node (JavaScript)\n * Transforms input like:\n *   [{ output: \"[{...}]\\n\\n---\\n\\n**References:** ...\"}]\n * into:\n *   [{ action: \"parse\", response: { output: [ ... ] } }]\n */\n\nfunction extractFirstJsonArray(text) {\n  if (typeof text !== 'string') return null;\n\n  // Find first '['\n  const start = text.indexOf('[');\n  if (start < 0) return null;\n\n  // Scan forward to find the matching closing ']' for the first JSON array.\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < text.length; i++) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escape) {\n        escape = false;\n      } else if (ch === '\\\\') {\n        escape = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === '[') depth++;\n    if (ch === ']') depth--;\n\n    if (depth === 0) {\n      // i is the index of the matching closing bracket\n      return text.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeJsonParse(jsonText) {\n  try {\n    return JSON.parse(jsonText);\n  } catch (e) {\n    return null;\n  }\n}\n\n// Input handling: support either $json.output OR a nested \"output\" string.\nconst input = $input.all();\n\nconst outItems = [];\n\nfor (const item of input) {\n  const j = item.json ?? {};\n\n  // Common cases:\n  // 1) j.output is already an array -> keep it\n  // 2) j.output is a string containing JSON + refs -> extract JSON array and parse\n  // 3) j.output is missing but j.response?.output exists -> keep it\n  let topics = null;\n\n  if (Array.isArray(j.output)) {\n    topics = j.output;\n  } else if (typeof j.output === 'string') {\n    const arrText = extractFirstJsonArray(j.output);\n    if (arrText) topics = safeJsonParse(arrText);\n  } else if (j.response && Array.isArray(j.response.output)) {\n    topics = j.response.output;\n  }\n\n  // Validate shape: should be an array of objects with title/rationale/hook\n  if (!Array.isArray(topics)) {\n    outItems.push({\n      json: {\n        action: \"parse\",\n        response: { output: [] },\n        error: \"Could not parse topics array from input\",\n        rawPreview: typeof j.output === 'string' ? j.output.slice(0, 300) : null,\n      }\n    });\n    continue;\n  }\n\n  // Clean each topic: keep only the three keys, coerce to strings, drop nulls\n  const cleaned = topics\n    .filter(t => t && typeof t === 'object')\n    .map(t => ({\n      title: String(t.title ?? \"\").trim(),\n      rationale: String(t.rationale ?? \"\").trim(),\n      hook: String(t.hook ?? \"\").trim(),\n    }))\n    .filter(t => t.title || t.rationale || t.hook);\n\n  outItems.push({\n    json: {\n      action: \"parse\",\n      response: {\n        output: cleaned\n      }\n    }\n  });\n}\n\nreturn outItems;\n"
-        },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          784,
-          -832
-        ],
-        "id": "85da0106-c4f0-422c-85f2-da2a1d58bf84",
-        "name": "Code in JavaScript"
+        "id": "6f007dc1-5b11-4db9-85e6-a38697e426d3",
+        "name": "Create Drafts Table (or delete after setup)"
       }
     ],
     "connections": {
-      "Content creator": {
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          []
+        ]
+      },
+      "Inbound Request": {
         "main": [
           [
             {
-              "node": "Hashtag generator /SEO",
+              "node": "Topic Generator",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "LLM Sonar Pro": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Topic Generator",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Topic Generator": {
+        "main": [
+          [
+            {
+              "node": "Parse Topics JSON",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Topics JSON": {
+        "main": [
+          [
+            {
+              "node": "Write Post JSON",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "LLM GPT-5": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Write Post JSON",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Post JSON": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "Write Post JSON",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Post JSON": {
+        "main": [
+          [
+            {
+              "node": "Generate Hashtags",
               "type": "main",
               "index": 0
             },
             {
-              "node": "Image Values",
+              "node": "Set Image Size",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "OpenAI Chat Model": {
+      "LLM 4o Mini": {
         "ai_languageModel": [
           [
             {
-              "node": "Content Researcher",
+              "node": "Generate Hashtags",
               "type": "ai_languageModel",
               "index": 0
             }
           ]
         ]
       },
-      "OpenAI Chat Model1": {
-        "ai_languageModel": [
-          [
-            {
-              "node": "Content creator",
-              "type": "ai_languageModel",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "OpenAI Chat Model2": {
-        "ai_languageModel": [
-          [
-            {
-              "node": "Hashtag generator /SEO",
-              "type": "ai_languageModel",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Hashtag generator /SEO": {
-        "main": [
-          [
-            {
-              "node": "Concanate Post Content",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Structured Output Parser1": {
+      "Parse Hashtags": {
         "ai_outputParser": [
           [
             {
-              "node": "Content creator",
+              "node": "Generate Hashtags",
               "type": "ai_outputParser",
               "index": 0
             }
           ]
         ]
       },
-      "Structured Output Parser2": {
-        "ai_outputParser": [
-          [
-            {
-              "node": "Hashtag generator /SEO",
-              "type": "ai_outputParser",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Content Researcher": {
+      "Generate Hashtags": {
         "main": [
           [
             {
-              "node": "Code in JavaScript",
+              "node": "Assemble Post",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Create a Data Table (one-time)": {
-        "main": [
-          []
-        ]
-      },
-      "Merge for Telegram Preview": {
+      "Set Image Size": {
         "main": [
           [
             {
-              "node": "Upsert row(s)",
+              "node": "Save Image Params",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Concanate Post Content": {
+      "Save Image Params": {
         "main": [
           [
             {
-              "node": "Merge for Telegram Preview",
+              "node": "Run Image Gen",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run Image Gen": {
+        "main": [
+          [
+            {
+              "node": "Merge Post+Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble Post": {
+        "main": [
+          [
+            {
+              "node": "Merge Post+Image",
               "type": "main",
               "index": 1
             }
           ]
         ]
       },
-      "Upsert row(s)": {
+      "Merge Post+Image": {
         "main": [
           [
             {
-              "node": "Call 'Telegram Post Preview'",
+              "node": "Save Draft",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "When Executed by Another Workflow": {
+      "Save Draft": {
         "main": [
           [
             {
-              "node": "Content Researcher",
+              "node": "Send TG Preview",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Upsert row(s)1": {
+      "Create Drafts Table (or delete after setup)": {
         "main": [
-          [
-            {
-              "node": "Call 'My workflow 2'",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Call 'My workflow 2'": {
-        "main": [
-          [
-            {
-              "node": "Merge for Telegram Preview",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Image Values": {
-        "main": [
-          [
-            {
-              "node": "Upsert row(s)1",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Structured Output Parser": {
-        "ai_outputParser": [
           []
-        ]
-      },
-      "Code in JavaScript": {
-        "main": [
-          [
-            {
-              "node": "Content creator",
-              "type": "main",
-              "index": 0
-            }
-          ]
         ]
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 840d049f",
+    "name": "Version 4c5f288b",
     "description": "",
     "autosaved": false
   },
