@@ -1,94 +1,11 @@
 {
-  "updatedAt": "2026-01-24T06:06:42.093Z",
+  "updatedAt": "2026-01-27T18:13:06.786Z",
   "createdAt": "2026-01-14T18:31:16.968Z",
   "id": "uV2nYAKK2etP3V8M",
   "name": "Generate LinkedIn Image",
   "active": true,
   "isArchived": false,
   "nodes": [
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "nano-banana",
-          "mode": "list",
-          "cachedResultName": "nano-banana"
-        },
-        "options": {
-          "maxTokens": 300
-        }
-      },
-      "id": "20f8413b-93be-4998-858c-18ffd16f89c0",
-      "name": "OpenAI Chat Model4",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "position": [
-        64,
-        416
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "openAiApi": {
-          "id": "XStdg09nSm0XQbuY",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are an AI image-generation expert specializing in professional technical visuals for LinkedIn posts.\n\nObjective:\nGenerate a clear, realistic, and technically accurate image that visually explains an embedded software engineering concept intended for senior engineers, tech leads, and reviewers.\n\nBase the image content strictly on the following description:\n\"{{ $json.image_description }}{{ $('When Executed by Another Workflow').item.json.user_edit ? 'IMPORTANT USER INPUT: ' + $('When Executed by Another Workflow').item.json.user_edit : '' }}\"\n\nImage Requirements:\n- The image must represent a real-world embedded system context (industrial, automotive, robotics, or aviation-grade electronics).\n- Use a clean, professional technical illustration or schematic-diagram style.\n- Prefer block diagrams, signal flows, timing charts, or annotated system views where appropriate.\n- Visuals should communicate cause–effect relationships, timing behavior, or architectural separation clearly.\n- All depicted components must be plausible in real embedded systems (MCUs, power rails, watchdogs, DMA, buses, ISRs, sensors, etc.).\n\nText Usage Rules:\n- Avoid explanatory sentences.\n- Use labels only when they represent real technical elements (e.g., “Watchdog”, “ISR”, “DMA Burst”, “CAN Bus”, “Brownout Threshold”).\n- Do NOT invent terminology or add marketing-style text.\n- If text is used, keep it minimal, precise, and technically correct.\n\nStyle & Tone:\n- Neutral, engineering-focused, and authoritative.\n- No artistic effects, no abstract metaphors, no cartoons.\n- No people, faces, mascots, or human figures.\n- No branding, logos, or UI mockups.\n\nComposition & Format:\n- Aspect ratio: {{ $json.width }}:{{ $json.height }} (LinkedIn feed optimized).\n- High contrast and readable at small sizes.\n- White, light-gray, or dark technical background is acceptable.\n- Consistent line weights, clean layout, uncluttered spacing.\n\nRendering Guidance:\n- Prefer vector-like clarity or high-resolution technical illustration.\n- Sharp edges, clear separation between subsystems.\n- Lighting should be neutral and functional, not dramatic.\n\nFinal Check:\nThe image should look like something a senior embedded engineer would approve for a design review slide or post-mortem explanation.",
-        "hasOutputParser": true,
-        "batching": {}
-      },
-      "id": "9fb56335-c1d2-442f-8393-13338bdae3f9",
-      "name": "Image generator",
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "position": [
-        64,
-        240
-      ],
-      "typeVersion": 1.7,
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "d258329d-5070-40df-87e9-8d22ab47a1f2",
-              "name": "=output",
-              "value": "={{\n  $json.output ??\n  $json.image_prompt ??\n  $json.text ??\n  $json.output_text ??\n  $json.message?.content ??\n  $json.choices?.[0]?.message?.content ??\n  $json.response ??\n  $json.data ??\n  $json.result ??\n  $json\n}}\n",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        368,
-        240
-      ],
-      "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
-      "name": "Reconstruct output",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// n8n Code node (JavaScript)\n// Goal: always output { image_prompt: [<string>] }.\n// Handles cases where input.output is either an object {image_prompt: \"...\"} or a plain string.\n// Also strips markdown and optionally extracts a direct URL if present.\n\nconst trigger = $items('When Executed by Another Workflow')[0]?.json ?? {};\nconst item = $input.first().json;\nconst out = item.output;\n\n// 1) Normalize to a string prompt\nlet promptText = \"\";\n\nif (out && typeof out === \"object\") {\n  // Old schema: { image_prompt: \"...\" }\n  promptText = out.image_prompt ?? \"\";\n} else if (typeof out === \"string\") {\n  // New schema: plain text\n  promptText = out;\n} else {\n  promptText = \"\";\n}\n\n// 2) If the model returned markdown with an image + URL, extract the best URL\n// Prefer the last http(s) URL in the text (often the direct link).\nconst urlMatches = promptText.match(/https?:\\/\\/\\S+/g) || [];\nconst bestUrl = urlMatches.length ? urlMatches[urlMatches.length - 1].replace(/[\\)\\]\\s]+$/g, \"\") : \"\";\n\n// 3) Remove markdown image syntax to avoid feeding junk downstream (optional but recommended)\npromptText = promptText\n  .replace(/!\\[[^\\]]*\\]\\([^)]+\\)/g, \"\")   // remove markdown images\n  .replace(/\\n{3,}/g, \"\\n\\n\")            // collapse excessive newlines\n  .trim();\n\n// 4) Decide what downstream should receive:\n// - If your next node expects a prompt to generate an image, you want a CLEAN PROMPT (not a URL).\n// - If your next node expects an IMAGE URL, pass bestUrl instead.\n// Choose ONE of these outputs:\n\n// A) Use clean prompt text (recommended if next step is image generation):\nconst finalValue = promptText;\n\n// B) Use extracted URL (use this if next step downloads the image):\n// const finalValue = bestUrl;\n\nconst prompts = finalValue ? [finalValue] : [];\n\nreturn [\n  {\n    json: {\n      // carry IDs forward (string + trim is safest)\n      message_id: trigger.message_id != null ? String(trigger.message_id).trim() : null,\n      content_id: trigger.content_id != null ? String(trigger.content_id).trim() : null,\n\n      image_prompt: prompts,\n      extracted_image_url: bestUrl,\n    },\n  },\n];\n"
-      },
-      "id": "104126eb-8be6-4c73-9b60-778bd4405f03",
-      "name": "Extract Image URL",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        544,
-        240
-      ],
-      "executeOnce": false,
-      "typeVersion": 2,
-      "alwaysOutputData": true
-    },
     {
       "parameters": {
         "workflowInputs": {
@@ -112,36 +29,7 @@
         240
       ],
       "id": "519cd05d-43da-414f-a3ad-91919752c3e3",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        -144,
-        160
-      ],
-      "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
-      "name": "Get row(s)"
+      "name": "Inbound Image Req"
     },
     {
       "parameters": {
@@ -204,7 +92,36 @@
         240
       ],
       "id": "b59f5133-220f-4788-9b7a-4b8afbfeca83",
-      "name": "Switch"
+      "name": "Pick Draft Key"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $json.message_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        160
+      ],
+      "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
+      "name": "Load By MsgId"
     },
     {
       "parameters": {
@@ -233,7 +150,154 @@
         352
       ],
       "id": "6ba19fed-58e3-4b9f-8216-86068b5b56a1",
-      "name": "Get row(s)1"
+      "name": "Load By ContentId"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "nano-banana",
+          "mode": "list",
+          "cachedResultName": "nano-banana"
+        },
+        "options": {
+          "maxTokens": 300
+        }
+      },
+      "id": "20f8413b-93be-4998-858c-18ffd16f89c0",
+      "name": "LLM Nano Banana",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        64,
+        416
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "XStdg09nSm0XQbuY",
+          "name": "POE OpanAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI image-generation expert specializing in professional technical visuals for LinkedIn posts.\n\nObjective:\nGenerate a clear, realistic, and technically accurate image that visually explains an embedded software engineering concept intended for senior engineers, tech leads, and reviewers.\n\nBase the image content strictly on the following description:\n\"{{ $json.image_description }}{{ $('Inbound Image Req').item.json.user_edit ? 'IMPORTANT USER INPUT: ' + $('Inbound Image Req').item.json.user_edit : '' }}\"\n\nImage Requirements:\n- The image must represent a real-world embedded system context (industrial, automotive, robotics, or aviation-grade electronics).\n- Use a clean, professional technical illustration or schematic-diagram style.\n- Prefer block diagrams, signal flows, timing charts, or annotated system views where appropriate.\n- Visuals should communicate cause–effect relationships, timing behavior, or architectural separation clearly.\n- All depicted components must be plausible in real embedded systems (MCUs, power rails, watchdogs, DMA, buses, ISRs, sensors, etc.).\n\nText Usage Rules:\n- Avoid explanatory sentences.\n- Use labels only when they represent real technical elements (e.g., “Watchdog”, “ISR”, “DMA Burst”, “CAN Bus”, “Brownout Threshold”).\n- Do NOT invent terminology or add marketing-style text.\n- If text is used, keep it minimal, precise, and technically correct.\n\nStyle & Tone:\n- Neutral, engineering-focused, and authoritative.\n- No artistic effects, no abstract metaphors, no cartoons.\n- No people, faces, mascots, or human figures.\n- No branding, logos, or UI mockups.\n\nComposition & Format:\n- Aspect ratio: {{ $json.width }}:{{ $json.height }} (LinkedIn feed optimized).\n- High contrast and readable at small sizes.\n- White, light-gray, or dark technical background is acceptable.\n- Consistent line weights, clean layout, uncluttered spacing.\n\nRendering Guidance:\n- Prefer vector-like clarity or high-resolution technical illustration.\n- Sharp edges, clear separation between subsystems.\n- Lighting should be neutral and functional, not dramatic.\n\nFinal Check:\nThe image should look like something a senior embedded engineer would approve for a design review slide or post-mortem explanation.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "id": "9fb56335-c1d2-442f-8393-13338bdae3f9",
+      "name": "Build Image Prompt",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        64,
+        240
+      ],
+      "typeVersion": 1.7,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d258329d-5070-40df-87e9-8d22ab47a1f2",
+              "name": "=output",
+              "value": "={{\n  $json.output ??\n  $json.image_prompt ??\n  $json.text ??\n  $json.output_text ??\n  $json.message?.content ??\n  $json.choices?.[0]?.message?.content ??\n  $json.response ??\n  $json.data ??\n  $json.result ??\n  $json\n}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        240
+      ],
+      "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
+      "name": "Normalize LLM Out",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node (JavaScript)\n// Goal: always output { image_prompt: [<string>] }.\n// Handles cases where input.output is either an object {image_prompt: \"...\"} or a plain string.\n// Also strips markdown and optionally extracts a direct URL if present.\n\nconst trigger = $items('Inbound Image Req')[0]?.json ?? {};\nconst item = $input.first().json;\nconst out = item.output;\n\n// 1) Normalize to a string prompt\nlet promptText = \"\";\n\nif (out && typeof out === \"object\") {\n  // Old schema: { image_prompt: \"...\" }\n  promptText = out.image_prompt ?? \"\";\n} else if (typeof out === \"string\") {\n  // New schema: plain text\n  promptText = out;\n} else {\n  promptText = \"\";\n}\n\n// 2) If the model returned markdown with an image + URL, extract the best URL\n// Prefer the last http(s) URL in the text (often the direct link).\nconst urlMatches = promptText.match(/https?:\\/\\/\\S+/g) || [];\nconst bestUrl = urlMatches.length ? urlMatches[urlMatches.length - 1].replace(/[\\)\\]\\s]+$/g, \"\") : \"\";\n\n// 3) Remove markdown image syntax to avoid feeding junk downstream (optional but recommended)\npromptText = promptText\n  .replace(/!\\[[^\\]]*\\]\\([^)]+\\)/g, \"\")   // remove markdown images\n  .replace(/\\n{3,}/g, \"\\n\\n\")            // collapse excessive newlines\n  .trim();\n\n// 4) Decide what downstream should receive:\n// - If your next node expects a prompt to generate an image, you want a CLEAN PROMPT (not a URL).\n// - If your next node expects an IMAGE URL, pass bestUrl instead.\n// Choose ONE of these outputs:\n\n// A) Use clean prompt text (recommended if next step is image generation):\nconst finalValue = promptText;\n\n// B) Use extracted URL (use this if next step downloads the image):\n// const finalValue = bestUrl;\n\nconst prompts = finalValue ? [finalValue] : [];\n\nreturn [\n  {\n    json: {\n      // carry IDs forward (string + trim is safest)\n      message_id: trigger.message_id != null ? String(trigger.message_id).trim() : null,\n      content_id: trigger.content_id != null ? String(trigger.content_id).trim() : null,\n\n      image_prompt: prompts,\n      extracted_image_url: bestUrl,\n    },\n  },\n];\n"
+      },
+      "id": "104126eb-8be6-4c73-9b60-778bd4405f03",
+      "name": "Extract Prompt+URL",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        544,
+        240
+      ],
+      "executeOnce": false,
+      "typeVersion": 2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                    "leftValue": "={{ $json.content_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        240
+      ],
+      "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
+      "name": "Pick Update Key",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -353,7 +417,7 @@
         160
       ],
       "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
-      "name": "Update row(s)",
+      "name": "Save Image URL",
       "alwaysOutputData": true
     },
     {
@@ -474,191 +538,127 @@
         352
       ],
       "id": "fcbf05d2-af38-4330-8829-798e2597a819",
-      "name": "Update row(s)1",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        704,
-        240
-      ],
-      "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
-      "name": "Switch1",
+      "name": "Save Image URL 2",
       "alwaysOutputData": true
     }
   ],
   "connections": {
-    "OpenAI Chat Model4": {
+    "Inbound Image Req": {
+      "main": [
+        [
+          {
+            "node": "Pick Draft Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Draft Key": {
+      "main": [
+        [
+          {
+            "node": "Load By MsgId",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load By ContentId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load By MsgId": {
+      "main": [
+        [
+          {
+            "node": "Build Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load By ContentId": {
+      "main": [
+        [
+          {
+            "node": "Build Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Nano Banana": {
       "ai_languageModel": [
         [
           {
-            "node": "Image generator",
+            "node": "Build Image Prompt",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Image generator": {
+    "Build Image Prompt": {
       "main": [
         [
           {
-            "node": "Reconstruct output",
+            "node": "Normalize LLM Out",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Reconstruct output": {
+    "Normalize LLM Out": {
       "main": [
         [
           {
-            "node": "Extract Image URL",
+            "node": "Extract Prompt+URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract Image URL": {
+    "Extract Prompt+URL": {
       "main": [
         [
           {
-            "node": "Switch1",
+            "node": "Pick Update Key",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "When Executed by Another Workflow": {
+    "Pick Update Key": {
       "main": [
         [
           {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Get row(s)",
+            "node": "Save Image URL",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Get row(s)1",
+            "node": "Save Image URL 2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s)": {
-      "main": [
-        [
-          {
-            "node": "Image generator",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s)1": {
-      "main": [
-        [
-          {
-            "node": "Image generator",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update row(s)": {
+    "Save Image URL": {
       "main": [
         []
-      ]
-    },
-    "Switch1": {
-      "main": [
-        [
-          {
-            "node": "Update row(s)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Update row(s)1",
-            "type": "main",
-            "index": 0
-          }
-        ]
       ]
     }
   },
@@ -669,7 +669,7 @@
   "staticData": null,
   "meta": null,
   "pinData": {
-    "When Executed by Another Workflow": [
+    "Inbound Image Req": [
       {
         "json": {
           "content_id": "1335",
@@ -682,8 +682,8 @@
       }
     ]
   },
-  "versionId": "7b7ffaa9-28ef-43cd-a357-4ec15e713138",
-  "activeVersionId": "7b7ffaa9-28ef-43cd-a357-4ec15e713138",
+  "versionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
+  "activeVersionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
   "triggerCount": 0,
   "shared": [
     {
@@ -695,94 +695,11 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-22T10:02:17.000Z",
-    "createdAt": "2026-01-22T10:02:13.634Z",
-    "versionId": "7b7ffaa9-28ef-43cd-a357-4ec15e713138",
+    "updatedAt": "2026-01-27T18:13:09.000Z",
+    "createdAt": "2026-01-27T18:13:06.787Z",
+    "versionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
     "workflowId": "uV2nYAKK2etP3V8M",
     "nodes": [
-      {
-        "parameters": {
-          "model": {
-            "__rl": true,
-            "value": "nano-banana",
-            "mode": "list",
-            "cachedResultName": "nano-banana"
-          },
-          "options": {
-            "maxTokens": 300
-          }
-        },
-        "id": "20f8413b-93be-4998-858c-18ffd16f89c0",
-        "name": "OpenAI Chat Model4",
-        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-        "position": [
-          64,
-          416
-        ],
-        "typeVersion": 1.2,
-        "credentials": {
-          "openAiApi": {
-            "id": "XStdg09nSm0XQbuY",
-            "name": "OpenAi account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "promptType": "define",
-          "text": "=You are an AI image-generation expert specializing in professional technical visuals for LinkedIn posts.\n\nObjective:\nGenerate a clear, realistic, and technically accurate image that visually explains an embedded software engineering concept intended for senior engineers, tech leads, and reviewers.\n\nBase the image content strictly on the following description:\n\"{{ $json.image_description }}{{ $('When Executed by Another Workflow').item.json.user_edit ? 'IMPORTANT USER INPUT: ' + $('When Executed by Another Workflow').item.json.user_edit : '' }}\"\n\nImage Requirements:\n- The image must represent a real-world embedded system context (industrial, automotive, robotics, or aviation-grade electronics).\n- Use a clean, professional technical illustration or schematic-diagram style.\n- Prefer block diagrams, signal flows, timing charts, or annotated system views where appropriate.\n- Visuals should communicate cause–effect relationships, timing behavior, or architectural separation clearly.\n- All depicted components must be plausible in real embedded systems (MCUs, power rails, watchdogs, DMA, buses, ISRs, sensors, etc.).\n\nText Usage Rules:\n- Avoid explanatory sentences.\n- Use labels only when they represent real technical elements (e.g., “Watchdog”, “ISR”, “DMA Burst”, “CAN Bus”, “Brownout Threshold”).\n- Do NOT invent terminology or add marketing-style text.\n- If text is used, keep it minimal, precise, and technically correct.\n\nStyle & Tone:\n- Neutral, engineering-focused, and authoritative.\n- No artistic effects, no abstract metaphors, no cartoons.\n- No people, faces, mascots, or human figures.\n- No branding, logos, or UI mockups.\n\nComposition & Format:\n- Aspect ratio: {{ $json.width }}:{{ $json.height }} (LinkedIn feed optimized).\n- High contrast and readable at small sizes.\n- White, light-gray, or dark technical background is acceptable.\n- Consistent line weights, clean layout, uncluttered spacing.\n\nRendering Guidance:\n- Prefer vector-like clarity or high-resolution technical illustration.\n- Sharp edges, clear separation between subsystems.\n- Lighting should be neutral and functional, not dramatic.\n\nFinal Check:\nThe image should look like something a senior embedded engineer would approve for a design review slide or post-mortem explanation.",
-          "hasOutputParser": true,
-          "batching": {}
-        },
-        "id": "9fb56335-c1d2-442f-8393-13338bdae3f9",
-        "name": "Image generator",
-        "type": "@n8n/n8n-nodes-langchain.chainLlm",
-        "position": [
-          64,
-          240
-        ],
-        "typeVersion": 1.7,
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "assignments": {
-            "assignments": [
-              {
-                "id": "d258329d-5070-40df-87e9-8d22ab47a1f2",
-                "name": "=output",
-                "value": "={{\n  $json.output ??\n  $json.image_prompt ??\n  $json.text ??\n  $json.output_text ??\n  $json.message?.content ??\n  $json.choices?.[0]?.message?.content ??\n  $json.response ??\n  $json.data ??\n  $json.result ??\n  $json\n}}\n",
-                "type": "string"
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.set",
-        "typeVersion": 3.4,
-        "position": [
-          368,
-          240
-        ],
-        "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
-        "name": "Reconstruct output",
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "jsCode": "// n8n Code node (JavaScript)\n// Goal: always output { image_prompt: [<string>] }.\n// Handles cases where input.output is either an object {image_prompt: \"...\"} or a plain string.\n// Also strips markdown and optionally extracts a direct URL if present.\n\nconst trigger = $items('When Executed by Another Workflow')[0]?.json ?? {};\nconst item = $input.first().json;\nconst out = item.output;\n\n// 1) Normalize to a string prompt\nlet promptText = \"\";\n\nif (out && typeof out === \"object\") {\n  // Old schema: { image_prompt: \"...\" }\n  promptText = out.image_prompt ?? \"\";\n} else if (typeof out === \"string\") {\n  // New schema: plain text\n  promptText = out;\n} else {\n  promptText = \"\";\n}\n\n// 2) If the model returned markdown with an image + URL, extract the best URL\n// Prefer the last http(s) URL in the text (often the direct link).\nconst urlMatches = promptText.match(/https?:\\/\\/\\S+/g) || [];\nconst bestUrl = urlMatches.length ? urlMatches[urlMatches.length - 1].replace(/[\\)\\]\\s]+$/g, \"\") : \"\";\n\n// 3) Remove markdown image syntax to avoid feeding junk downstream (optional but recommended)\npromptText = promptText\n  .replace(/!\\[[^\\]]*\\]\\([^)]+\\)/g, \"\")   // remove markdown images\n  .replace(/\\n{3,}/g, \"\\n\\n\")            // collapse excessive newlines\n  .trim();\n\n// 4) Decide what downstream should receive:\n// - If your next node expects a prompt to generate an image, you want a CLEAN PROMPT (not a URL).\n// - If your next node expects an IMAGE URL, pass bestUrl instead.\n// Choose ONE of these outputs:\n\n// A) Use clean prompt text (recommended if next step is image generation):\nconst finalValue = promptText;\n\n// B) Use extracted URL (use this if next step downloads the image):\n// const finalValue = bestUrl;\n\nconst prompts = finalValue ? [finalValue] : [];\n\nreturn [\n  {\n    json: {\n      // carry IDs forward (string + trim is safest)\n      message_id: trigger.message_id != null ? String(trigger.message_id).trim() : null,\n      content_id: trigger.content_id != null ? String(trigger.content_id).trim() : null,\n\n      image_prompt: prompts,\n      extracted_image_url: bestUrl,\n    },\n  },\n];\n"
-        },
-        "id": "104126eb-8be6-4c73-9b60-778bd4405f03",
-        "name": "Extract Image URL",
-        "type": "n8n-nodes-base.code",
-        "position": [
-          544,
-          240
-        ],
-        "executeOnce": false,
-        "typeVersion": 2,
-        "alwaysOutputData": true
-      },
       {
         "parameters": {
           "workflowInputs": {
@@ -806,36 +723,7 @@
           240
         ],
         "id": "519cd05d-43da-414f-a3ad-91919752c3e3",
-        "name": "When Executed by Another Workflow"
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          -144,
-          160
-        ],
-        "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
-        "name": "Get row(s)"
+        "name": "Inbound Image Req"
       },
       {
         "parameters": {
@@ -898,7 +786,36 @@
           240
         ],
         "id": "b59f5133-220f-4788-9b7a-4b8afbfeca83",
-        "name": "Switch"
+        "name": "Pick Draft Key"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $json.message_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -144,
+          160
+        ],
+        "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
+        "name": "Load By MsgId"
       },
       {
         "parameters": {
@@ -927,7 +844,154 @@
           352
         ],
         "id": "6ba19fed-58e3-4b9f-8216-86068b5b56a1",
-        "name": "Get row(s)1"
+        "name": "Load By ContentId"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "nano-banana",
+            "mode": "list",
+            "cachedResultName": "nano-banana"
+          },
+          "options": {
+            "maxTokens": 300
+          }
+        },
+        "id": "20f8413b-93be-4998-858c-18ffd16f89c0",
+        "name": "LLM Nano Banana",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          64,
+          416
+        ],
+        "typeVersion": 1.2,
+        "credentials": {
+          "openAiApi": {
+            "id": "XStdg09nSm0XQbuY",
+            "name": "POE OpanAI API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=You are an AI image-generation expert specializing in professional technical visuals for LinkedIn posts.\n\nObjective:\nGenerate a clear, realistic, and technically accurate image that visually explains an embedded software engineering concept intended for senior engineers, tech leads, and reviewers.\n\nBase the image content strictly on the following description:\n\"{{ $json.image_description }}{{ $('Inbound Image Req').item.json.user_edit ? 'IMPORTANT USER INPUT: ' + $('Inbound Image Req').item.json.user_edit : '' }}\"\n\nImage Requirements:\n- The image must represent a real-world embedded system context (industrial, automotive, robotics, or aviation-grade electronics).\n- Use a clean, professional technical illustration or schematic-diagram style.\n- Prefer block diagrams, signal flows, timing charts, or annotated system views where appropriate.\n- Visuals should communicate cause–effect relationships, timing behavior, or architectural separation clearly.\n- All depicted components must be plausible in real embedded systems (MCUs, power rails, watchdogs, DMA, buses, ISRs, sensors, etc.).\n\nText Usage Rules:\n- Avoid explanatory sentences.\n- Use labels only when they represent real technical elements (e.g., “Watchdog”, “ISR”, “DMA Burst”, “CAN Bus”, “Brownout Threshold”).\n- Do NOT invent terminology or add marketing-style text.\n- If text is used, keep it minimal, precise, and technically correct.\n\nStyle & Tone:\n- Neutral, engineering-focused, and authoritative.\n- No artistic effects, no abstract metaphors, no cartoons.\n- No people, faces, mascots, or human figures.\n- No branding, logos, or UI mockups.\n\nComposition & Format:\n- Aspect ratio: {{ $json.width }}:{{ $json.height }} (LinkedIn feed optimized).\n- High contrast and readable at small sizes.\n- White, light-gray, or dark technical background is acceptable.\n- Consistent line weights, clean layout, uncluttered spacing.\n\nRendering Guidance:\n- Prefer vector-like clarity or high-resolution technical illustration.\n- Sharp edges, clear separation between subsystems.\n- Lighting should be neutral and functional, not dramatic.\n\nFinal Check:\nThe image should look like something a senior embedded engineer would approve for a design review slide or post-mortem explanation.",
+          "hasOutputParser": true,
+          "batching": {}
+        },
+        "id": "9fb56335-c1d2-442f-8393-13338bdae3f9",
+        "name": "Build Image Prompt",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "position": [
+          64,
+          240
+        ],
+        "typeVersion": 1.7,
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "d258329d-5070-40df-87e9-8d22ab47a1f2",
+                "name": "=output",
+                "value": "={{\n  $json.output ??\n  $json.image_prompt ??\n  $json.text ??\n  $json.output_text ??\n  $json.message?.content ??\n  $json.choices?.[0]?.message?.content ??\n  $json.response ??\n  $json.data ??\n  $json.result ??\n  $json\n}}\n",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          368,
+          240
+        ],
+        "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
+        "name": "Normalize LLM Out",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// n8n Code node (JavaScript)\n// Goal: always output { image_prompt: [<string>] }.\n// Handles cases where input.output is either an object {image_prompt: \"...\"} or a plain string.\n// Also strips markdown and optionally extracts a direct URL if present.\n\nconst trigger = $items('Inbound Image Req')[0]?.json ?? {};\nconst item = $input.first().json;\nconst out = item.output;\n\n// 1) Normalize to a string prompt\nlet promptText = \"\";\n\nif (out && typeof out === \"object\") {\n  // Old schema: { image_prompt: \"...\" }\n  promptText = out.image_prompt ?? \"\";\n} else if (typeof out === \"string\") {\n  // New schema: plain text\n  promptText = out;\n} else {\n  promptText = \"\";\n}\n\n// 2) If the model returned markdown with an image + URL, extract the best URL\n// Prefer the last http(s) URL in the text (often the direct link).\nconst urlMatches = promptText.match(/https?:\\/\\/\\S+/g) || [];\nconst bestUrl = urlMatches.length ? urlMatches[urlMatches.length - 1].replace(/[\\)\\]\\s]+$/g, \"\") : \"\";\n\n// 3) Remove markdown image syntax to avoid feeding junk downstream (optional but recommended)\npromptText = promptText\n  .replace(/!\\[[^\\]]*\\]\\([^)]+\\)/g, \"\")   // remove markdown images\n  .replace(/\\n{3,}/g, \"\\n\\n\")            // collapse excessive newlines\n  .trim();\n\n// 4) Decide what downstream should receive:\n// - If your next node expects a prompt to generate an image, you want a CLEAN PROMPT (not a URL).\n// - If your next node expects an IMAGE URL, pass bestUrl instead.\n// Choose ONE of these outputs:\n\n// A) Use clean prompt text (recommended if next step is image generation):\nconst finalValue = promptText;\n\n// B) Use extracted URL (use this if next step downloads the image):\n// const finalValue = bestUrl;\n\nconst prompts = finalValue ? [finalValue] : [];\n\nreturn [\n  {\n    json: {\n      // carry IDs forward (string + trim is safest)\n      message_id: trigger.message_id != null ? String(trigger.message_id).trim() : null,\n      content_id: trigger.content_id != null ? String(trigger.content_id).trim() : null,\n\n      image_prompt: prompts,\n      extracted_image_url: bestUrl,\n    },\n  },\n];\n"
+        },
+        "id": "104126eb-8be6-4c73-9b60-778bd4405f03",
+        "name": "Extract Prompt+URL",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          544,
+          240
+        ],
+        "executeOnce": false,
+        "typeVersion": 2,
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.message_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "exists",
+                        "singleValue": true
+                      },
+                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                      "leftValue": "={{ $json.content_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "exists",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          704,
+          240
+        ],
+        "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
+        "name": "Pick Update Key",
+        "alwaysOutputData": true
       },
       {
         "parameters": {
@@ -1047,7 +1111,7 @@
           160
         ],
         "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
-        "name": "Update row(s)",
+        "name": "Save Image URL",
         "alwaysOutputData": true
       },
       {
@@ -1168,196 +1232,132 @@
           352
         ],
         "id": "fcbf05d2-af38-4330-8829-798e2597a819",
-        "name": "Update row(s)1",
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "exists",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "exists",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          704,
-          240
-        ],
-        "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
-        "name": "Switch1",
+        "name": "Save Image URL 2",
         "alwaysOutputData": true
       }
     ],
     "connections": {
-      "OpenAI Chat Model4": {
+      "Inbound Image Req": {
+        "main": [
+          [
+            {
+              "node": "Pick Draft Key",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pick Draft Key": {
+        "main": [
+          [
+            {
+              "node": "Load By MsgId",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Load By ContentId",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load By MsgId": {
+        "main": [
+          [
+            {
+              "node": "Build Image Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load By ContentId": {
+        "main": [
+          [
+            {
+              "node": "Build Image Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "LLM Nano Banana": {
         "ai_languageModel": [
           [
             {
-              "node": "Image generator",
+              "node": "Build Image Prompt",
               "type": "ai_languageModel",
               "index": 0
             }
           ]
         ]
       },
-      "Image generator": {
+      "Build Image Prompt": {
         "main": [
           [
             {
-              "node": "Reconstruct output",
+              "node": "Normalize LLM Out",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Reconstruct output": {
+      "Normalize LLM Out": {
         "main": [
           [
             {
-              "node": "Extract Image URL",
+              "node": "Extract Prompt+URL",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Extract Image URL": {
+      "Extract Prompt+URL": {
         "main": [
           [
             {
-              "node": "Switch1",
+              "node": "Pick Update Key",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "When Executed by Another Workflow": {
+      "Pick Update Key": {
         "main": [
           [
             {
-              "node": "Switch",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Switch": {
-        "main": [
-          [
-            {
-              "node": "Get row(s)",
+              "node": "Save Image URL",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Get row(s)1",
+              "node": "Save Image URL 2",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Get row(s)": {
-        "main": [
-          [
-            {
-              "node": "Image generator",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Get row(s)1": {
-        "main": [
-          [
-            {
-              "node": "Image generator",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Update row(s)": {
+      "Save Image URL": {
         "main": [
           []
-        ]
-      },
-      "Switch1": {
-        "main": [
-          [
-            {
-              "node": "Update row(s)",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Update row(s)1",
-              "type": "main",
-              "index": 0
-            }
-          ]
         ]
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 7b7ffaa9",
+    "name": "Version da0ab86e",
     "description": "",
     "autosaved": false
   },
