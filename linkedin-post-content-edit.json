@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-24T06:07:31.748Z",
+  "updatedAt": "2026-01-27T18:09:19.438Z",
   "createdAt": "2026-01-21T17:26:50.468Z",
   "id": "LLQ5sFn2xrQtOOzy",
   "name": "LinkedIn Post Content Edit",
@@ -26,7 +26,7 @@
         48
       ],
       "id": "ddda23d6-494c-46be-a9bd-15728576e42c",
-      "name": "When Executed by Another Workflow"
+      "name": "Inbound Edit Req"
     },
     {
       "parameters": {
@@ -55,17 +55,17 @@
         48
       ],
       "id": "4b1fbe7d-2a88-4894-b1c2-3fee62a6e5fc",
-      "name": "Get row(s)"
+      "name": "Load Draft"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('When Executed by Another Workflow').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+        "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
         "hasOutputParser": true,
         "batching": {}
       },
       "id": "3e57f5f3-c7e9-4ea8-97ed-2d5084d857ed",
-      "name": "Content creator",
+      "name": "Rewrite Post JSON",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "position": [
         208,
@@ -84,7 +84,7 @@
         "options": {}
       },
       "id": "a6377095-7643-4737-9a58-f8295b8e21f0",
-      "name": "OpenAI Chat Model1",
+      "name": "LLM GPT-5",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "position": [
         208,
@@ -94,7 +94,7 @@
       "credentials": {
         "openAiApi": {
           "id": "XStdg09nSm0XQbuY",
-          "name": "OpenAi account"
+          "name": "POE OpanAI API"
         }
       }
     },
@@ -103,7 +103,7 @@
         "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
       },
       "id": "c2f42701-9fc2-4918-b558-93ddeb41dbf9",
-      "name": "Structured Output Parser1",
+      "name": "Parse Post JSON",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "position": [
         352,
@@ -113,7 +113,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Get row(s)').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
+        "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Load Draft').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -122,7 +122,7 @@
         48
       ],
       "id": "6d8cb043-72f7-48da-bf99-88bea034ec31",
-      "name": "Concanate Post Content"
+      "name": "Assemble Post Text"
     },
     {
       "parameters": {
@@ -138,7 +138,7 @@
           "conditions": [
             {
               "keyName": "message_id",
-              "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+              "keyValue": "={{ $('Inbound Edit Req').item.json.message_id }}"
             }
           ]
         },
@@ -213,70 +213,70 @@
         48
       ],
       "id": "cd51f950-c8f5-4352-b5aa-89fd862a63eb",
-      "name": "Upsert row(s)"
+      "name": "Save Edited Draft"
     }
   ],
   "connections": {
-    "When Executed by Another Workflow": {
+    "Inbound Edit Req": {
       "main": [
         [
           {
-            "node": "Get row(s)",
+            "node": "Load Draft",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s)": {
+    "Load Draft": {
       "main": [
         [
           {
-            "node": "Content creator",
+            "node": "Rewrite Post JSON",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model1": {
+    "Rewrite Post JSON": {
+      "main": [
+        [
+          {
+            "node": "Assemble Post Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM GPT-5": {
       "ai_languageModel": [
         [
           {
-            "node": "Content creator",
+            "node": "Rewrite Post JSON",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Structured Output Parser1": {
+    "Parse Post JSON": {
       "ai_outputParser": [
         [
           {
-            "node": "Content creator",
+            "node": "Rewrite Post JSON",
             "type": "ai_outputParser",
             "index": 0
           }
         ]
       ]
     },
-    "Content creator": {
+    "Assemble Post Text": {
       "main": [
         [
           {
-            "node": "Concanate Post Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Concanate Post Content": {
-      "main": [
-        [
-          {
-            "node": "Upsert row(s)",
+            "node": "Save Edited Draft",
             "type": "main",
             "index": 0
           }
@@ -291,7 +291,7 @@
   "staticData": null,
   "meta": null,
   "pinData": {
-    "When Executed by Another Workflow": [
+    "Inbound Edit Req": [
       {
         "json": {
           "content_id": null,
@@ -301,8 +301,8 @@
       }
     ]
   },
-  "versionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
-  "activeVersionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
+  "versionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
+  "activeVersionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
   "triggerCount": 0,
   "shared": [
     {
@@ -314,9 +314,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-21T18:40:38.000Z",
-    "createdAt": "2026-01-21T18:40:35.488Z",
-    "versionId": "e6ee2f34-fe93-455a-a48e-19b12a24eba8",
+    "updatedAt": "2026-01-27T18:09:21.000Z",
+    "createdAt": "2026-01-27T18:09:19.440Z",
+    "versionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
     "workflowId": "LLQ5sFn2xrQtOOzy",
     "nodes": [
       {
@@ -339,7 +339,7 @@
           48
         ],
         "id": "ddda23d6-494c-46be-a9bd-15728576e42c",
-        "name": "When Executed by Another Workflow"
+        "name": "Inbound Edit Req"
       },
       {
         "parameters": {
@@ -368,17 +368,17 @@
           48
         ],
         "id": "4b1fbe7d-2a88-4894-b1c2-3fee62a6e5fc",
-        "name": "Get row(s)"
+        "name": "Load Draft"
       },
       {
         "parameters": {
           "promptType": "define",
-          "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('When Executed by Another Workflow').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+          "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
           "hasOutputParser": true,
           "batching": {}
         },
         "id": "3e57f5f3-c7e9-4ea8-97ed-2d5084d857ed",
-        "name": "Content creator",
+        "name": "Rewrite Post JSON",
         "type": "@n8n/n8n-nodes-langchain.chainLlm",
         "position": [
           208,
@@ -397,7 +397,7 @@
           "options": {}
         },
         "id": "a6377095-7643-4737-9a58-f8295b8e21f0",
-        "name": "OpenAI Chat Model1",
+        "name": "LLM GPT-5",
         "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
         "position": [
           208,
@@ -407,7 +407,7 @@
         "credentials": {
           "openAiApi": {
             "id": "XStdg09nSm0XQbuY",
-            "name": "OpenAi account"
+            "name": "POE OpanAI API"
           }
         }
       },
@@ -416,7 +416,7 @@
           "jsonSchemaExample": "{\n  \"topic\": \"1 punchy sentence; no cause, no solution.\",\n  \"what_happened\": \"describe the real-world symptom + context; no root cause, no fixes.\",\n  \"why_it_happened\": \"technical root cause; no fixes.\",\n  \"solution_and_takeaway\": \"fixes + prevention + final takeaway; do not introduce new symptoms.\",\n  \"image_description\": \"describe an image\"\n}"
         },
         "id": "c2f42701-9fc2-4918-b558-93ddeb41dbf9",
-        "name": "Structured Output Parser1",
+        "name": "Parse Post JSON",
         "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
         "position": [
           352,
@@ -426,7 +426,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Get row(s)').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
+          "jsCode": "// Normalize upstream outputs\nconst contentOut = $input.first().json.output;\nconst hashtagOut = $('Load Draft').first().json.hashtags;\n\n// Build main post body\nconst postContentBase =\n  contentOut.topic + `\\n\\n` +\n  contentOut.what_happened + `\\n\\n` +\n  contentOut.why_it_happened + `\\n\\n` +\n  contentOut.solution_and_takeaway;\n\n// Final post content\nconst postContent = postContentBase;\n\nreturn [{\n  json: {\n    ...$json,\n    \"post title\": contentOut.topic,\n    \"post content\": postContent\n  }\n}];\n"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -435,7 +435,7 @@
           48
         ],
         "id": "6d8cb043-72f7-48da-bf99-88bea034ec31",
-        "name": "Concanate Post Content"
+        "name": "Assemble Post Text"
       },
       {
         "parameters": {
@@ -451,7 +451,7 @@
             "conditions": [
               {
                 "keyName": "message_id",
-                "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+                "keyValue": "={{ $('Inbound Edit Req').item.json.message_id }}"
               }
             ]
           },
@@ -526,70 +526,70 @@
           48
         ],
         "id": "cd51f950-c8f5-4352-b5aa-89fd862a63eb",
-        "name": "Upsert row(s)"
+        "name": "Save Edited Draft"
       }
     ],
     "connections": {
-      "When Executed by Another Workflow": {
+      "Inbound Edit Req": {
         "main": [
           [
             {
-              "node": "Get row(s)",
+              "node": "Load Draft",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Get row(s)": {
+      "Load Draft": {
         "main": [
           [
             {
-              "node": "Content creator",
+              "node": "Rewrite Post JSON",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "OpenAI Chat Model1": {
+      "Rewrite Post JSON": {
+        "main": [
+          [
+            {
+              "node": "Assemble Post Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "LLM GPT-5": {
         "ai_languageModel": [
           [
             {
-              "node": "Content creator",
+              "node": "Rewrite Post JSON",
               "type": "ai_languageModel",
               "index": 0
             }
           ]
         ]
       },
-      "Structured Output Parser1": {
+      "Parse Post JSON": {
         "ai_outputParser": [
           [
             {
-              "node": "Content creator",
+              "node": "Rewrite Post JSON",
               "type": "ai_outputParser",
               "index": 0
             }
           ]
         ]
       },
-      "Content creator": {
+      "Assemble Post Text": {
         "main": [
           [
             {
-              "node": "Concanate Post Content",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Concanate Post Content": {
-        "main": [
-          [
-            {
-              "node": "Upsert row(s)",
+              "node": "Save Edited Draft",
               "type": "main",
               "index": 0
             }
@@ -598,7 +598,7 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version e6ee2f34",
+    "name": "Version 323e7e31",
     "description": "",
     "autosaved": false
   },
