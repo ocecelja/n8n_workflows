@@ -1,11 +1,154 @@
 {
-  "updatedAt": "2026-01-24T06:07:09.535Z",
+  "updatedAt": "2026-01-27T18:11:09.810Z",
   "createdAt": "2026-01-15T08:28:03.323Z",
   "id": "CQMOekrQxamRkw0P",
   "name": "LinkedIn Post Preview by Telegram",
   "active": true,
   "isArchived": false,
   "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "content_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
+      "name": "Inbound Preview Req"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                    "leftValue": "={{ $json.content_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        16
+      ],
+      "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
+      "name": "Pick Lookup Key"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_id",
+              "keyValue": "={{ $json.message_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -80
+      ],
+      "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
+      "name": "Load By MsgId"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "0KR0zM6EHjml9RtV",
+          "mode": "list",
+          "cachedResultName": "linkedin_drafts",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "content_id",
+              "keyValue": "={{ $json.content_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        112
+      ],
+      "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
+      "name": "Load By ContentId"
+    },
     {
       "parameters": {
         "url": "={{ $json.image_url }}",
@@ -28,7 +171,7 @@
         "options": {}
       },
       "id": "494b126c-8c44-47e9-b7c4-58bec708a36c",
-      "name": "Download Photo",
+      "name": "Fetch Draft Image",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
         576,
@@ -38,6 +181,45 @@
       "typeVersion": 4.2,
       "alwaysOutputData": true,
       "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "7010291974",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        16
+      ],
+      "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
+      "name": "TG Send Photo",
+      "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"post_content\": \"{{ $('Fetch Draft Image').item.json.post_content + '\\n\\n' + $('Fetch Draft Image').item.json.hashtags }}\"\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
+      "name": "Build Preview Text"
     },
     {
       "parameters": {
@@ -81,7 +263,7 @@
         16
       ],
       "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
-      "name": "Send a text message",
+      "name": "TG Send Actions",
       "webhookId": "e4663fb1-2439-498e-a4bf-803f2e4d871f",
       "credentials": {
         "telegramApi": {
@@ -92,78 +274,66 @@
     },
     {
       "parameters": {
-        "operation": "sendPhoto",
-        "chatId": "7010291974",
-        "binaryData": true,
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        800,
-        16
-      ],
-      "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
-      "name": "Send a photo message",
-      "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
-      "alwaysOutputData": false,
-      "credentials": {
-        "telegramApi": {
-          "id": "0x6YfcdWFvx71vgi",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        352,
-        -80
-      ],
-      "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
-      "name": "Get row(s)"
-    },
-    {
-      "parameters": {
-        "workflowInputs": {
+        "rules": {
           "values": [
             {
-              "name": "message_id"
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Inbound Preview Req').item.json.message_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                  }
+                ],
+                "combinator": "and"
+              }
             },
             {
-              "name": "content_id"
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                    "leftValue": "={{ $('Inbound Preview Req').item.json.content_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
       "position": [
-        -96,
+        1472,
         16
       ],
-      "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
-      "name": "When Executed by Another Workflow"
+      "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
+      "name": "Pick Update Key"
     },
     {
       "parameters": {
@@ -179,14 +349,14 @@
           "conditions": [
             {
               "keyName": "message_id",
-              "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+              "keyValue": "={{ $('Inbound Preview Req').item.json.message_id }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+            "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -303,177 +473,7 @@
         -80
       ],
       "id": "1f10296e-3397-4265-96de-07c17986279c",
-      "name": "Update row(s)"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"post_content\": \"{{ $('Download Photo').item.json.post_content + '\\n\\n' + $('Download Photo').item.json.hashtags }}\"\n}\n\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1024,
-        16
-      ],
-      "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        128,
-        16
-      ],
-      "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
-              "keyValue": "={{ $json.content_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        352,
-        112
-      ],
-      "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
-      "name": "Get row(s)1"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        1472,
-        16
-      ],
-      "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
-      "name": "Switch1"
+      "name": "Save New MsgId"
     },
     {
       "parameters": {
@@ -489,14 +489,14 @@
           "conditions": [
             {
               "keyName": "content_id",
-              "keyValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}"
+              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+            "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -613,117 +613,117 @@
         112
       ],
       "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-      "name": "Update row(s)1"
+      "name": "Save New MsgId 2"
     }
   ],
   "connections": {
-    "Download Photo": {
+    "Inbound Preview Req": {
       "main": [
         [
           {
-            "node": "Send a photo message",
+            "node": "Pick Lookup Key",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send a text message": {
+    "Pick Lookup Key": {
       "main": [
         [
           {
-            "node": "Switch1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a photo message": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s)": {
-      "main": [
-        [
-          {
-            "node": "Download Photo",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s)1": {
-      "main": [
-        [
-          {
-            "node": "Download Photo",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Get row(s)",
+            "node": "Load By MsgId",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Get row(s)1",
+            "node": "Load By ContentId",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch1": {
+    "Load By MsgId": {
       "main": [
         [
           {
-            "node": "Update row(s)",
+            "node": "Fetch Draft Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load By ContentId": {
+      "main": [
+        [
+          {
+            "node": "Fetch Draft Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Draft Image": {
+      "main": [
+        [
+          {
+            "node": "TG Send Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TG Send Photo": {
+      "main": [
+        [
+          {
+            "node": "Build Preview Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview Text": {
+      "main": [
+        [
+          {
+            "node": "TG Send Actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TG Send Actions": {
+      "main": [
+        [
+          {
+            "node": "Pick Update Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Update Key": {
+      "main": [
+        [
+          {
+            "node": "Save New MsgId",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Update row(s)1",
+            "node": "Save New MsgId 2",
             "type": "main",
             "index": 0
           }
@@ -738,7 +738,7 @@
   "staticData": null,
   "meta": null,
   "pinData": {
-    "When Executed by Another Workflow": [
+    "Inbound Preview Req": [
       {
         "json": {
           "message_id": null,
@@ -750,8 +750,8 @@
       }
     ]
   },
-  "versionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
-  "activeVersionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
+  "versionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
+  "activeVersionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
   "triggerCount": 0,
   "shared": [
     {
@@ -763,11 +763,154 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-22T10:11:38.000Z",
-    "createdAt": "2026-01-22T10:11:35.891Z",
-    "versionId": "32849d24-e7ea-4979-a266-11f92c4f6c87",
+    "updatedAt": "2026-01-27T18:11:12.000Z",
+    "createdAt": "2026-01-27T18:11:09.811Z",
+    "versionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
     "workflowId": "CQMOekrQxamRkw0P",
     "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "message_id"
+              },
+              {
+                "name": "content_id"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -96,
+          16
+        ],
+        "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
+        "name": "Inbound Preview Req"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.message_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      },
+                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                      "leftValue": "={{ $json.content_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          128,
+          16
+        ],
+        "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
+        "name": "Pick Lookup Key"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "message_id",
+                "keyValue": "={{ $json.message_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          -80
+        ],
+        "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
+        "name": "Load By MsgId"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "0KR0zM6EHjml9RtV",
+            "mode": "list",
+            "cachedResultName": "linkedin_drafts",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "content_id",
+                "keyValue": "={{ $json.content_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          112
+        ],
+        "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
+        "name": "Load By ContentId"
+      },
       {
         "parameters": {
           "url": "={{ $json.image_url }}",
@@ -790,7 +933,7 @@
           "options": {}
         },
         "id": "494b126c-8c44-47e9-b7c4-58bec708a36c",
-        "name": "Download Photo",
+        "name": "Fetch Draft Image",
         "type": "n8n-nodes-base.httpRequest",
         "position": [
           576,
@@ -800,6 +943,45 @@
         "typeVersion": 4.2,
         "alwaysOutputData": true,
         "waitBetweenTries": 5000
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "7010291974",
+          "binaryData": true,
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          800,
+          16
+        ],
+        "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
+        "name": "TG Send Photo",
+        "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
+        "alwaysOutputData": false,
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "={\n  \"post_content\": \"{{ $('Fetch Draft Image').item.json.post_content + '\\n\\n' + $('Fetch Draft Image').item.json.hashtags }}\"\n}\n\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1024,
+          16
+        ],
+        "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
+        "name": "Build Preview Text"
       },
       {
         "parameters": {
@@ -843,7 +1025,7 @@
           16
         ],
         "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
-        "name": "Send a text message",
+        "name": "TG Send Actions",
         "webhookId": "e4663fb1-2439-498e-a4bf-803f2e4d871f",
         "credentials": {
           "telegramApi": {
@@ -854,78 +1036,66 @@
       },
       {
         "parameters": {
-          "operation": "sendPhoto",
-          "chatId": "7010291974",
-          "binaryData": true,
-          "additionalFields": {}
-        },
-        "type": "n8n-nodes-base.telegram",
-        "typeVersion": 1.2,
-        "position": [
-          800,
-          16
-        ],
-        "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
-        "name": "Send a photo message",
-        "webhookId": "d4ef9ee2-64ac-4b62-97df-e3db81ca1410",
-        "alwaysOutputData": false,
-        "credentials": {
-          "telegramApi": {
-            "id": "0x6YfcdWFvx71vgi",
-            "name": "Telegram account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          352,
-          -80
-        ],
-        "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
-        "name": "Get row(s)"
-      },
-      {
-        "parameters": {
-          "workflowInputs": {
+          "rules": {
             "values": [
               {
-                "name": "message_id"
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Inbound Preview Req').item.json.message_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      },
+                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
+                    }
+                  ],
+                  "combinator": "and"
+                }
               },
               {
-                "name": "content_id"
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
+                      "leftValue": "={{ $('Inbound Preview Req').item.json.content_id }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
               }
             ]
-          }
+          },
+          "options": {}
         },
-        "type": "n8n-nodes-base.executeWorkflowTrigger",
-        "typeVersion": 1.1,
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
         "position": [
-          -96,
+          1472,
           16
         ],
-        "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
-        "name": "When Executed by Another Workflow"
+        "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
+        "name": "Pick Update Key"
       },
       {
         "parameters": {
@@ -941,14 +1111,14 @@
             "conditions": [
               {
                 "keyName": "message_id",
-                "keyValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}"
+                "keyValue": "={{ $('Inbound Preview Req').item.json.message_id }}"
               }
             ]
           },
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
-              "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+              "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -1065,177 +1235,7 @@
           -80
         ],
         "id": "1f10296e-3397-4265-96de-07c17986279c",
-        "name": "Update row(s)"
-      },
-      {
-        "parameters": {
-          "mode": "raw",
-          "jsonOutput": "={\n  \"post_content\": \"{{ $('Download Photo').item.json.post_content + '\\n\\n' + $('Download Photo').item.json.hashtags }}\"\n}\n\n",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.set",
-        "typeVersion": 3.4,
-        "position": [
-          1024,
-          16
-        ],
-        "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
-        "name": "Edit Fields"
-      },
-      {
-        "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          128,
-          16
-        ],
-        "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
-        "name": "Switch"
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "content_id",
-                "keyValue": "={{ $json.content_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          352,
-          112
-        ],
-        "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
-        "name": "Get row(s)1"
-      },
-      {
-        "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $('When Executed by Another Workflow').item.json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          1472,
-          16
-        ],
-        "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
-        "name": "Switch1"
+        "name": "Save New MsgId"
       },
       {
         "parameters": {
@@ -1251,14 +1251,14 @@
             "conditions": [
               {
                 "keyName": "content_id",
-                "keyValue": "={{ $('When Executed by Another Workflow').item.json.content_id }}"
+                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
               }
             ]
           },
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
-              "message_id": "={{ $('Send a text message').item.json.result.message_id }}"
+              "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -1375,117 +1375,117 @@
           112
         ],
         "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-        "name": "Update row(s)1"
+        "name": "Save New MsgId 2"
       }
     ],
     "connections": {
-      "Download Photo": {
+      "Inbound Preview Req": {
         "main": [
           [
             {
-              "node": "Send a photo message",
+              "node": "Pick Lookup Key",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Send a text message": {
+      "Pick Lookup Key": {
         "main": [
           [
             {
-              "node": "Switch1",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send a photo message": {
-        "main": [
-          [
-            {
-              "node": "Edit Fields",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Get row(s)": {
-        "main": [
-          [
-            {
-              "node": "Download Photo",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "When Executed by Another Workflow": {
-        "main": [
-          [
-            {
-              "node": "Switch",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Edit Fields": {
-        "main": [
-          [
-            {
-              "node": "Send a text message",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Get row(s)1": {
-        "main": [
-          [
-            {
-              "node": "Download Photo",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Switch": {
-        "main": [
-          [
-            {
-              "node": "Get row(s)",
+              "node": "Load By MsgId",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Get row(s)1",
+              "node": "Load By ContentId",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Switch1": {
+      "Load By MsgId": {
         "main": [
           [
             {
-              "node": "Update row(s)",
+              "node": "Fetch Draft Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load By ContentId": {
+        "main": [
+          [
+            {
+              "node": "Fetch Draft Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Draft Image": {
+        "main": [
+          [
+            {
+              "node": "TG Send Photo",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TG Send Photo": {
+        "main": [
+          [
+            {
+              "node": "Build Preview Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Preview Text": {
+        "main": [
+          [
+            {
+              "node": "TG Send Actions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TG Send Actions": {
+        "main": [
+          [
+            {
+              "node": "Pick Update Key",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pick Update Key": {
+        "main": [
+          [
+            {
+              "node": "Save New MsgId",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Update row(s)1",
+              "node": "Save New MsgId 2",
               "type": "main",
               "index": 0
             }
@@ -1494,7 +1494,7 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 32849d24",
+    "name": "Version a2b68460",
     "description": "",
     "autosaved": false
   },
