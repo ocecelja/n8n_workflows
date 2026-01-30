@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T18:01:54.472Z",
+  "updatedAt": "2026-01-29T16:12:30.325Z",
   "createdAt": "2026-01-14T07:26:22.500Z",
   "id": "nZkKcr9dv2ddl5Ae",
   "name": "Telegram Master Router",
@@ -575,7 +575,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
+        "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | topic | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -678,14 +678,14 @@
           "value": "mJatCdnL86VthoQD",
           "mode": "list",
           "cachedResultUrl": "/workflow/mJatCdnL86VthoQD",
-          "cachedResultName": "Automated LinkedIn Post Creation by Master Router"
+          "cachedResultName": "Generate LinkedIn Post  Content and Hastags"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
-            "chat_id": "={{ $json.chat_id }}",
-            "user_id": "={{ $json.user_id }}"
+            "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
+            "user_id": "={{ $('Platform Router').item.json.user_id }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -2356,9 +2356,9 @@
     "TG Inbound": [
       {
         "json": {
-          "update_id": 45956778,
+          "update_id": 45956811,
           "callback_query": {
-            "id": "2438858654365658130",
+            "id": "2438858654681943317",
             "from": {
               "id": 7010291974,
               "is_bot": false,
@@ -2366,7 +2366,7 @@
               "language_code": "en"
             },
             "message": {
-              "message_id": 511,
+              "message_id": 566,
               "from": {
                 "id": 8352851412,
                 "is_bot": true,
@@ -2378,51 +2378,16 @@
                 "first_name": "Ozzy",
                 "type": "private"
               },
-              "date": 1769237485,
-              "text": "🧪 LINKEDIN PREVIEW\n\n📝 POST:\nYour ISR is faster than your CAN hardware—and it’s deleting your data.\n\nA shipped automotive ECU intermittently dropped CAN frames in the field for two months. Telemetry showed sporadic checksum mismatches and missing sequence IDs under burst traffic at 500 kbps, especially after wake-from-sleep. Unit tests and HIL passed, but long-haul road logs revealed silent data corruption and occasional watchdog nudges with no reproducible trigger in the lab.\n\nThe RX interrupt handler cleared the receive flag as its first instruction, before the CAN peripheral had completed latching the frame into the mailbox. Under certain timing (bus-heavy ISR nesting, clock drift after sleep, and DMA contention), the clear acknowledged the interrupt source early, the hardware overwrote the RX buffer, and the driver then read either stale or partially updated data. The race hid in tests because simulated traffic didn’t align the ISR entry with the peripheral’s write window.\n\nWe reordered the ISR to read and validate the mailbox first, then clear the flag after data is safely copied to a software queue, adding a memory barrier to enforce ordering. We disabled preemption during the critical read, added double-read consistency checks on DLC/ID, and introduced a hardware-ready poll with a bounded timeout. Regression now includes stress patterns that sweep ISR latency vs. peripheral write timing, plus fault-injection to jitter clocks and enable nested interrupts. Takeaway: in interrupt-driven drivers, never acknowledge before you own the data—tie flag clearing to a verified, ordered read path and test across timing phase space, not just function paths.\n\n#Automotive #Embedded #Debugging #DataIntegrity #EmbeddedSystems #FutureOfWork #DigitalTransformation\n\nChoose an action:\n\n\nThis message was sent automatically with n8n",
+              "date": 1769702980,
+              "text": "Choose a topic (tap 1..5)\n\n1) Why We Approved a CAN Filter Mask That Dropped Safety Messages Under Load\nHook: I signed off on a CAN driver where the acceptance filter worked perfectly in bench tests but dropped brake status messages in production vehicles under heavy bus traffic.\nWhy: Bitwise mask logic in acceptance filters can silently reject critical frames when ID ranges overlap, especially under bus congestion where timing hides the loss until field deployment.\n\n2) The ISR We Moved to a Lower Priority Because It 'Felt Too Slow'\nHook: We demoted a sensor ISR priority to fix perceived sluggishness, then spent three weeks debugging phantom attitude drift that only appeared during aggressive maneuvers in flight test.\nWhy: Reprioritizing interrupt handlers based on perceived latency without analyzing dependency chains can invert critical data flow and cause silent corruption under specific load patterns.\n\n3) How a Passing Unit Test Hid a Stack Overflow That Killed the Watchdog\nHook: Our unit tests showed green for eighteen months until a field unit locked up because the test harness never exercised the full ISR nesting depth we saw on production hardware.\nWhy: Stack usage in recursive or deeply nested calls often escapes unit test environments due to different compiler optimization levels and missing realistic call chain depths from ISR context.\n\n4) We Assumed memcpy Was Safe Because the Buffers Were Statically Allocated\nHook: A buffer copy between two supposedly fixed-size structs caused intermittent bootloader corruption because a hardware revision changed DMA alignment, and we never validated sizes at the call site.\nWhy: Static allocation prevents heap corruption but does not enforce runtime bounds checking, and size mismatches from configuration changes or hardware variants cause silent overwrites that corrupt adjacent state.\n\n5) Why Our Bootloader Update Succeeded in Test but Bricked Units in the Field\nHook: We validated the bootloader update path on the bench with stable power, then fielded units started bricking during vehicle cranking because we never tested partial writes under voltage sag.\nWhy: Flash write sequences that work under controlled voltage and temperature can fail during partial writes or power loss, and missing atomic commit strategies leave systems unbootable without hardware recovery.\n\nThis message was sent automatically with n8n",
               "entities": [
                 {
-                  "offset": 1681,
-                  "length": 11,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1693,
-                  "length": 9,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1703,
-                  "length": 10,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1714,
-                  "length": 14,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1729,
-                  "length": 16,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1746,
-                  "length": 13,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1760,
-                  "length": 22,
-                  "type": "hashtag"
-                },
-                {
-                  "offset": 1804,
+                  "offset": 2351,
                   "length": 41,
                   "type": "italic"
                 },
                 {
-                  "offset": 1845,
+                  "offset": 2392,
                   "length": 3,
                   "type": "text_link",
                   "url": "https://n8n.io/?utm_source=n8n-internal&utm_medium=powered_by&utm_campaign=n8n-nodes-base.telegram_84800b0237bdfa326a9d8bffc97cd691fb36c6ee6e7d84d4c5ea611f677dfd19"
@@ -2435,23 +2400,31 @@
                 "inline_keyboard": [
                   [
                     {
-                      "text": "✅ Approve",
-                      "callback_data": "{\"type\":\"decision\",\"value\":\"APPROVE\"}"
+                      "text": "1",
+                      "callback_data": "{\"type\":\"topic\",\"topic\":\"0\"}"
                     },
                     {
-                      "text": "🔄 Re-generate",
-                      "callback_data": "{\"type\":\"decision\",\"value\":\"REGEN\"}"
+                      "text": "2",
+                      "callback_data": "{\"type\":\"topic\",\"topic\":\"1\"}"
                     },
                     {
-                      "text": "✏️ Edit",
-                      "callback_data": "{\"type\":\"decision\",\"value\":\"EDIT\"}"
+                      "text": "3",
+                      "callback_data": "{\"type\":\"topic\",\"topic\":\"2\"}"
+                    },
+                    {
+                      "text": "4",
+                      "callback_data": "{\"type\":\"topic\",\"topic\":\"3\"}"
+                    },
+                    {
+                      "text": "5",
+                      "callback_data": "{\"type\":\"topic\",\"topic\":\"4\"}"
                     }
                   ]
                 ]
               }
             },
             "chat_instance": "6389009241203100583",
-            "data": "{\"type\":\"decision\",\"value\":\"APPROVE\"}"
+            "data": "{\"type\":\"topic\",\"topic\":\"1\"}"
           }
         },
         "pairedItem": {
@@ -2460,8 +2433,8 @@
       }
     ]
   },
-  "versionId": "8632fdc1-3218-4403-aaf8-6546d8626f56",
-  "activeVersionId": "8632fdc1-3218-4403-aaf8-6546d8626f56",
+  "versionId": "ac64fe79-bb97-4625-81da-1a2fc172f23b",
+  "activeVersionId": "ac64fe79-bb97-4625-81da-1a2fc172f23b",
   "triggerCount": 1,
   "shared": [
     {
@@ -2473,9 +2446,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-27T18:01:57.000Z",
-    "createdAt": "2026-01-27T18:01:54.474Z",
-    "versionId": "8632fdc1-3218-4403-aaf8-6546d8626f56",
+    "updatedAt": "2026-01-29T16:12:33.000Z",
+    "createdAt": "2026-01-29T16:04:43.538Z",
+    "versionId": "ac64fe79-bb97-4625-81da-1a2fc172f23b",
     "workflowId": "nZkKcr9dv2ddl5Ae",
     "nodes": [
       {
@@ -3047,7 +3020,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
+          "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | topic | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -3150,14 +3123,14 @@
             "value": "mJatCdnL86VthoQD",
             "mode": "list",
             "cachedResultUrl": "/workflow/mJatCdnL86VthoQD",
-            "cachedResultName": "Automated LinkedIn Post Creation by Master Router"
+            "cachedResultName": "Generate LinkedIn Post  Content and Hastags"
           },
           "workflowInputs": {
             "mappingMode": "defineBelow",
             "value": {
               "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
-              "chat_id": "={{ $json.chat_id }}",
-              "user_id": "={{ $json.user_id }}"
+              "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
+              "user_id": "={{ $('Platform Router').item.json.user_id }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -4807,7 +4780,7 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 8632fdc1",
+    "name": "Version ac64fe79",
     "description": "",
     "autosaved": false
   },
