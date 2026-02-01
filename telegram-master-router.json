@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-30T16:02:53.178Z",
+  "updatedAt": "2026-01-31T19:19:33.191Z",
   "createdAt": "2026-01-14T07:26:22.500Z",
   "id": "nZkKcr9dv2ddl5Ae",
   "name": "Telegram Master Router",
@@ -100,6 +100,29 @@
                 ],
                 "combinator": "and"
               }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "18fcf6ab-06ef-4418-b04e-a9c4273fffe6",
+                    "leftValue": "={{ $node[\"Parse Callback\"].json.cb_type }}",
+                    "rightValue": "narrative",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -109,7 +132,7 @@
       "typeVersion": 3.4,
       "position": [
         608,
-        640
+        464
       ],
       "id": "f598330e-04f2-4130-97df-0e748fa6838a",
       "name": "Callback Router"
@@ -194,7 +217,7 @@
       "typeVersion": 3.4,
       "position": [
         832,
-        640
+        48
       ],
       "id": "966083ba-3142-4301-9751-475f6a8d1d93",
       "name": "Decision Router"
@@ -256,7 +279,7 @@
       "typeVersion": 3.4,
       "position": [
         832,
-        1136
+        592
       ],
       "id": "b52ca32c-e8e4-4a24-8280-e746037d8b85",
       "name": "Edit Target Router"
@@ -273,7 +296,7 @@
       "typeVersion": 1.2,
       "position": [
         -288,
-        128
+        400
       ],
       "id": "2244b9d7-21a0-419b-80ec-9bb7e34be9b0",
       "name": "TG Inbound",
@@ -345,7 +368,7 @@
       "typeVersion": 3.4,
       "position": [
         -64,
-        128
+        400
       ],
       "id": "a1c36c45-4cb4-48c4-8dee-4521d11508d2",
       "name": "Normalize Event"
@@ -407,20 +430,20 @@
       "typeVersion": 3.4,
       "position": [
         160,
-        128
+        400
       ],
       "id": "1a647bd9-110f-4a98-b29e-7a2d11b6e79a",
       "name": "Event Router"
     },
     {
       "parameters": {
-        "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | topic | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
+        "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  // Fallback for non-JSON callback payloads\n  cb = { type: 'unknown', value: raw };\n}\n\nconst valueRaw = String(cb.value ?? '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n\n      // Callback type (routing key)\n      // Always lowercase so router comparisons are stable:\n      //   topic | narrative | decision | platform | ...\n      cb_type: String(cb.type || '').trim().toLowerCase(),\n\n      // Raw callback value as sent in payload\n      // Keep this untouched for maximum flexibility\n      cb_value: valueRaw,\n\n      // Normalized helpers (WHY THEY EXIST):\n      //\n      // 1) Topic flow:\n      //    - buttons send numeric indices (\"0\"..\"4\")\n      //    - use cb_value_num to safely index topics array\n      //\n      // 2) Narrative flow:\n      //    - buttons send semantic values (\"yes\" / \"no\")\n      //    - compare via cb_value_lower === \"yes\"\n      //\n      // 3) Decision / platform flows:\n      //    - buttons send semantic enums (\"EDIT\", \"REGEN\", \"LINKEDIN\")\n      //    - compare via cb_value_upper === \"EDIT\"\n      //\n      // This avoids implicit coupling and fragile string handling.\n      cb_value_upper: valueRaw.toUpperCase(),\n      cb_value_lower: valueRaw.toLowerCase(),\n      cb_value_num: Number.isFinite(Number(valueRaw)) ? Number(valueRaw) : null,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         384,
-        656
+        512
       ],
       "id": "b8c42c7a-c254-415b-aa76-220bc80280c1",
       "name": "Parse Callback"
@@ -481,7 +504,7 @@
       "typeVersion": 3.4,
       "position": [
         832,
-        208
+        -352
       ],
       "id": "936dbba9-81df-44e0-9998-1c0754ce2f50",
       "name": "Platform Router"
@@ -491,14 +514,14 @@
         "resource": "callback",
         "queryId": "={{ $json.callback_query_id }}",
         "additionalFields": {
-          "text": "✅ Got it! Give it ~30sec."
+          "text": "Topic research! Give it ~15sec."
         }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
         1056,
-        192
+        -352
       ],
       "id": "bf8ed4d7-04dd-4f5c-8b9d-d330e938f75f",
       "name": "Ack Platform",
@@ -525,7 +548,7 @@
             "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
             "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
             "user_id": "={{ $('Platform Router').item.json.user_id }}",
-            "message_id": "={{ $json.message_id }}"
+            "message_id": "={{ $('Platform Router').item.json.message_id }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -576,7 +599,7 @@
       "typeVersion": 1.3,
       "position": [
         1280,
-        192
+        -352
       ],
       "id": "9a45394b-6bdd-4175-b505-59c32514a929",
       "name": "Start LI Create"
@@ -656,7 +679,7 @@
       "typeVersion": 1.3,
       "position": [
         1056,
-        400
+        -160
       ],
       "id": "f9b65830-32a7-4bf8-b742-f42e10bca22d",
       "name": "Publish LI Post"
@@ -762,7 +785,7 @@
       "typeVersion": 1.1,
       "position": [
         1056,
-        592
+        32
       ],
       "id": "025a98c8-41c7-49e2-aae4-1034dc43c7c7",
       "name": "Save Edit State",
@@ -782,7 +805,7 @@
       "typeVersion": 1.2,
       "position": [
         1280,
-        592
+        32
       ],
       "id": "6ed1c1d9-0fc3-4666-bb1e-33a3991f4db4",
       "name": "Prompt Edit Text",
@@ -900,7 +923,7 @@
       "typeVersion": 1.1,
       "position": [
         1504,
-        592
+        32
       ],
       "id": "68825c83-4c38-4d84-88e8-e6e2b79cf8c5",
       "name": "Save Prompt MsgId"
@@ -984,7 +1007,7 @@
       "typeVersion": 1.1,
       "position": [
         1056,
-        784
+        224
       ],
       "id": "d6f6d13d-b3e1-400b-aa26-0ccb20bb2d6f",
       "name": "Save Edit Target",
@@ -1023,7 +1046,7 @@
       "typeVersion": 1.2,
       "position": [
         1280,
-        784
+        224
       ],
       "id": "b2f590d3-979d-4b5c-8f3f-870ce80dc3e1",
       "name": "Ask Edit Target",
@@ -1130,7 +1153,7 @@
       "typeVersion": 1.1,
       "position": [
         1504,
-        784
+        224
       ],
       "id": "425b76b0-a547-41e9-b99d-24ed8c37561b",
       "name": "Save Target State"
@@ -1233,7 +1256,7 @@
       "typeVersion": 1.1,
       "position": [
         1056,
-        976
+        416
       ],
       "id": "3ad7975b-6acd-43b9-9ea1-fadcff30f80e",
       "name": "Mark Edit Pending"
@@ -1252,7 +1275,7 @@
       "typeVersion": 1.2,
       "position": [
         1280,
-        976
+        416
       ],
       "id": "42c0162e-92df-46e4-b824-cebbe104e659",
       "name": "Prompt Regen Text",
@@ -1370,7 +1393,7 @@
       "typeVersion": 1.1,
       "position": [
         1504,
-        976
+        416
       ],
       "id": "b3eda29f-4922-4d59-9c8d-628642d804c3",
       "name": "Save Prompt MsgId 2"
@@ -1387,7 +1410,7 @@
       "typeVersion": 1.2,
       "position": [
         1056,
-        1168
+        608
       ],
       "id": "3bab6b05-8a7c-4c5d-b70c-a90ef0468c34",
       "name": "Ack Edit",
@@ -1454,7 +1477,7 @@
       "typeVersion": 1.3,
       "position": [
         1280,
-        1168
+        608
       ],
       "id": "392576e6-e947-43db-ae84-b888638eaea8",
       "name": "Start LI Create 2"
@@ -1515,8 +1538,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        448,
-        -64
+        384,
+        272
       ],
       "id": "ab5bea10-21b6-4812-a638-79309d671367",
       "name": "Message Router1"
@@ -1553,8 +1576,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        704,
-        -48
+        608,
+        272
       ],
       "id": "20ab7064-7fa8-44a1-9ef3-69e252252ccd",
       "name": "Ask Platform1",
@@ -1578,7 +1601,7 @@
       "typeVersion": 1.2,
       "position": [
         832,
-        1504
+        800
       ],
       "id": "09e7ccda-0291-45b5-9fe5-95fb3b3eda71",
       "name": "TG Ack Topic Click",
@@ -1589,6 +1612,595 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "HkvrktjanMJbfj6w",
+          "mode": "list",
+          "cachedResultName": "telegram_pending_edit",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.chat_id }}"
+            },
+            {
+              "keyName": "pending_flow",
+              "keyValue": "LI_TOPIC"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        992
+      ],
+      "id": "bbed9638-76f8-4fe1-a292-8fe257585b8e",
+      "name": "DT Get Pending LI_TOPIC"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b043a1e4-e70e-4f58-b13f-395e87d0c906",
+              "leftValue": "={{ $node[\"Parse Callback\"].json.cb_value_lower }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1280,
+        992
+      ],
+      "id": "cec39662-17de-4fb8-b57c-c98c26f141e9",
+      "name": "Narrative Yes?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "Write 2–5 sentences of extra narrative/context you want included (situation, emotion, lesson, constraint). Reply to this message.",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        704
+      ],
+      "id": "89dcc151-080a-45e4-acd6-4660714a0ad6",
+      "name": "TG Prompt Narrative Text",
+      "webhookId": "81f98afb-92ae-4e1b-8816-0a7be8716643",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "HkvrktjanMJbfj6w",
+          "mode": "list",
+          "cachedResultName": "telegram_pending_edit",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.chat_id }}"
+            },
+            {
+              "keyName": "pending_flow",
+              "keyValue": "LI_TOPIC"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_step": "await_narrative_text",
+            "pending_prompt_message_id": "={{ $node[\"TG Prompt Narrative Text\"].json.result.message_id }}",
+            "pending_ts": "={{ Date.now() }}",
+            "expires_at": "={{ new Date(Date.now() + 30*60*1000).toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_flow",
+              "displayName": "pending_flow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_step",
+              "displayName": "pending_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ref_table",
+              "displayName": "ref_table",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ref_id",
+              "displayName": "ref_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_source_message_id",
+              "displayName": "pending_source_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "callback_message_id",
+              "displayName": "callback_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_prompt_message_id",
+              "displayName": "pending_prompt_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_ts",
+              "displayName": "pending_ts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1728,
+        704
+      ],
+      "id": "066122ca-dfff-49f6-92ae-63aff473338d",
+      "name": "DT Set Await Narrative Text"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "HkvrktjanMJbfj6w",
+          "mode": "list",
+          "cachedResultName": "telegram_pending_edit",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.chat_id }}"
+            },
+            {
+              "keyName": "pending_flow",
+              "keyValue": "LI_TOPIC"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_step": "idle",
+            "pending_prompt_message_id": "={{ '' }}",
+            "pending_ts": "={{ Date.now() }}",
+            "expires_at": "={{ '' }}",
+            "ref_id": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_flow",
+              "displayName": "pending_flow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_step",
+              "displayName": "pending_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ref_table",
+              "displayName": "ref_table",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ref_id",
+              "displayName": "ref_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_source_message_id",
+              "displayName": "pending_source_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "callback_message_id",
+              "displayName": "callback_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_prompt_message_id",
+              "displayName": "pending_prompt_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_ts",
+              "displayName": "pending_ts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        992
+      ],
+      "id": "bba24ffa-712b-4bb8-9abc-123567ee4447",
+      "name": "DT Clear LI_TOPIC Pending"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JoMQUlojHVwsrUUP",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JoMQUlojHVwsrUUP",
+          "cachedResultName": "LinkedIn Generate Post Content"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC\"].json.ref_id }}",
+            "chat_id": "={{ $json.chat_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "pref_id",
+              "displayName": "pref_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1728,
+        992
+      ],
+      "id": "c0135bd0-917a-4536-adaa-90e76db1d99c",
+      "name": "Call WF Generate Post Content"
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query_id }}",
+        "additionalFields": {
+          "text": "Got it ✅"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        992
+      ],
+      "id": "13d0c740-27ac-41c5-96e3-550b959a6fd9",
+      "name": "TG Ack Narrative Click",
+      "webhookId": "5ddf682d-3c6d-4107-9c02-ecfc2080b3de",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OcUfWmTLwwrikzjh",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OcUfWmTLwwrikzjh",
+          "cachedResultName": "LinkedIn Topic Selection Handler"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "user_id": "={{ $json.chat_id }}",
+            "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC (topic)\"].json.ref_id }}",
+            "topic_index": "={{ $node[\"Parse Callback\"].json.cb_value_num }}",
+            "callback_query_id": "={{ $('Callback Router').item.json.callback_query_id }}",
+            "message_id": "={{ $('Callback Router').item.json.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "topic_index",
+              "displayName": "topic_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "pref_id",
+              "displayName": "pref_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "callback_query_id",
+              "displayName": "callback_query_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        800
+      ],
+      "id": "9a0637d1-e833-4eda-b9e2-b421337d37b0",
+      "name": "Call WF Topic Pick Handler"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "HkvrktjanMJbfj6w",
+          "mode": "list",
+          "cachedResultName": "telegram_pending_edit",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $('Callback Router').item.json.chat_id }}"
+            },
+            {
+              "keyName": "pending_flow",
+              "keyValue": "LI_TOPIC"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1008,
+        800
+      ],
+      "id": "8f946591-9884-4635-acf2-6765a8a9f99c",
+      "name": "DT Get Pending LI_TOPIC (topic)"
     },
     {
       "parameters": {
@@ -1674,8 +2286,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2176,
-        -720
+        1504,
+        -768
       ],
       "id": "4031195f-8b5e-4111-91cc-5ec2d0ed00b2",
       "name": "Clear Edit State"
@@ -1725,8 +2337,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1952,
-        -720
+        1280,
+        -768
       ],
       "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
       "name": "Show Preview"
@@ -1775,8 +2387,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1744,
-        -592
+        1056,
+        -672
       ],
       "id": "007738fa-ad2b-40b1-9566-623f287b723b",
       "name": "Run Post Edit"
@@ -1790,8 +2402,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1520,
-        -512
+        832,
+        -672
       ],
       "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
       "name": "Notify Post Edit",
@@ -1859,8 +2471,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1728,
-        -800
+        1056,
+        -864
       ],
       "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
       "name": "Run Image Edit"
@@ -1874,7 +2486,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1504,
+        832,
         -864
       ],
       "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
@@ -1943,8 +2555,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1280,
-        -720
+        608,
+        -768
       ],
       "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
       "name": "Pending Action Router"
@@ -1981,8 +2593,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1280,
-        -512
+        608,
+        -576
       ],
       "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
       "name": "Ask Platform",
@@ -2050,8 +2662,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1056,
-        -560
+        384,
+        -672
       ],
       "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
       "name": "Message Router"
@@ -2061,8 +2673,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        832,
-        -560
+        160,
+        -672
       ],
       "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
       "name": "Merge Event+State"
@@ -2096,8 +2708,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        608,
-        -512
+        -64,
+        -672
       ],
       "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
       "name": "Map Edit Flags",
@@ -2126,8 +2738,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        384,
-        -512
+        -288,
+        -672
       ],
       "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
       "name": "Load Edit State",
@@ -2161,6 +2773,13 @@
         [
           {
             "node": "TG Ack Topic Click",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TG Ack Narrative Click",
             "type": "main",
             "index": 0
           }
@@ -2378,6 +2997,90 @@
         ]
       ]
     },
+    "DT Get Pending LI_TOPIC": {
+      "main": [
+        [
+          {
+            "node": "Narrative Yes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TG Prompt Narrative Text": {
+      "main": [
+        [
+          {
+            "node": "DT Set Await Narrative Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Narrative Yes?": {
+      "main": [
+        [
+          {
+            "node": "TG Prompt Narrative Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DT Clear LI_TOPIC Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT Clear LI_TOPIC Pending": {
+      "main": [
+        [
+          {
+            "node": "Call WF Generate Post Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TG Ack Narrative Click": {
+      "main": [
+        [
+          {
+            "node": "DT Get Pending LI_TOPIC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TG Ack Topic Click": {
+      "main": [
+        [
+          {
+            "node": "DT Get Pending LI_TOPIC (topic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT Get Pending LI_TOPIC (topic)": {
+      "main": [
+        [
+          {
+            "node": "Call WF Topic Pick Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Show Preview": {
       "main": [
         [
@@ -2525,9 +3228,9 @@
     "TG Inbound": [
       {
         "json": {
-          "update_id": 45956820,
+          "update_id": 45956834,
           "callback_query": {
-            "id": "2438858653999262480",
+            "id": "2438858653214200074",
             "from": {
               "id": 7010291974,
               "is_bot": false,
@@ -2535,7 +3238,7 @@
               "language_code": "en"
             },
             "message": {
-              "message_id": 577,
+              "message_id": 594,
               "from": {
                 "id": 8352851412,
                 "is_bot": true,
@@ -2547,16 +3250,16 @@
                 "first_name": "Ozzy",
                 "type": "private"
               },
-              "date": 1769755953,
-              "text": "Choose a topic (tap 1..5)\n\n1) Why we approved a CAN driver that silently dropped frames under 80% bus load\nHook: I signed off on a CAN driver after reviewing its error handling—it passed every unit test, but failed catastrophically when three ECUs transmitted simultaneously.\nWhy: CAN peripheral FIFO overrun handling was tested in isolation but never under realistic multi-message traffic patterns, causing silent data loss in production vehicles.\n\n2) The volatile keyword we removed during optimization that bricked 4000 devices in the field\nHook: A one-line 'cleanup' during a performance sprint removed volatile from a status register read—months later, devices stopped accepting OTA updates.\nWhy: Compiler optimization at -O2 eliminated a memory-mapped register polling loop we assumed was safe, breaking firmware update acknowledgment logic on deployed hardware.\n\n3) ISR priority inversion we missed because our RTOS test suite never simulated sensor interrupt storms\nHook: Our RTOS task scheduler worked flawlessly in HIL testing, then a customer's vibration environment triggered interrupt rates we never designed for—safety watchdog started firing.\nWhy: Priority inversion between high-frequency sensor ISRs and safety-critical control tasks only manifested under sustained interrupt rates exceeding lab test profiles.\n\n4) Why our bootloader's CRC check passed corruption that should have failed the update\nHook: I reviewed bootloader code that calculated CRC over 'length' bytes—nobody caught that the last 256-byte page was outside the checked region until field returns spiked.\nWhy: CRC validation logic contained an off-by-one error that excluded the final flash page from integrity checking, allowing partial firmware corruption to boot successfully.\n\n5) The race condition between DMA completion and buffer reuse that only triggered at -40°C\nHook: Our ADC sampling worked perfectly for eighteen months until winter deployments—cold soak testing revealed DMA callbacks arriving after we'd already reused the buffer.\nWhy: Temperature-dependent flash access timing altered DMA transfer completion relative to task scheduling, exposing an unsafe buffer reuse pattern that passed all ambient-temperature validation.\n\nThis message was sent automatically with n8n",
+              "date": 1769882504,
+              "text": "Choose a topic (tap 1..5)\n\n1) Why we approved a CAN driver that silently dropped frames under 80% bus load\nHook: I signed off on a CAN transmission function that returned success even when the hardware mailbox was full.\nWhy: CAN controllers have finite TX mailboxes and no standard API return semantics—approval assumed send-and-forget worked, but mailbox exhaustion caused silent message loss in production vehicles.\n\n2) The volatile keyword won't save your memory-mapped register access from compiler reordering\nHook: Our peripheral init sequence worked for two years until a compiler update reordered our register writes and bricked 200 units.\nWhy: Volatile prevents elimination but not reordering—compiler barriers and hardware memory fences are required, yet most reviews never check the generated assembly for MMIO sequences.\n\n3) Stack overflow detection that only triggers after corruption has already propagated\nHook: We debugged a watchdog reset for three weeks before realizing the stack overflow happened 40ms before the canary check ever ran.\nWhy: RTOS stack canaries and watermark checks run periodically or on context switch—by then, adjacent memory may already be corrupted, masking the true root cause during postmortem.\n\n4) Why our bootloader bricked devices during power loss—despite passing every bench test\nHook: Our firmware update routine had a two-second window where power loss would corrupt both images, and our test rig never hit it.\nWhy: Flash write atomicity assumptions break across real-world power-down curves—bench testing with hard shutoffs misses capacitor discharge timing and partial page corruption modes seen in the field.\n\n5) ISR execution time under 10 microseconds—until the peripheral asserted the interrupt again inside the handler\nHook: I approved an ISR that met timing budgets on the scope but starved the RTOS scheduler when the sensor data rate spiked.\nWhy: Interrupt re-entry or rapid reassertion can occur if the ISR clears flags before servicing the root cause—measured ISR timing in isolation hides cumulative starvation of lower-priority tasks.\n\nThis message was sent automatically with n8n",
               "entities": [
                 {
-                  "offset": 2227,
+                  "offset": 2099,
                   "length": 41,
                   "type": "italic"
                 },
                 {
-                  "offset": 2268,
+                  "offset": 2140,
                   "length": 3,
                   "type": "text_link",
                   "url": "https://n8n.io/?utm_source=n8n-internal&utm_medium=powered_by&utm_campaign=n8n-nodes-base.telegram_84800b0237bdfa326a9d8bffc97cd691fb36c6ee6e7d84d4c5ea611f677dfd19"
@@ -2602,8 +3305,8 @@
       }
     ]
   },
-  "versionId": "883abf1b-ea0a-44cb-be47-f9bf05d634e0",
-  "activeVersionId": "883abf1b-ea0a-44cb-be47-f9bf05d634e0",
+  "versionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
+  "activeVersionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
   "triggerCount": 1,
   "shared": [
     {
@@ -2615,9 +3318,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-30T16:02:55.000Z",
-    "createdAt": "2026-01-30T16:02:53.181Z",
-    "versionId": "883abf1b-ea0a-44cb-be47-f9bf05d634e0",
+    "updatedAt": "2026-01-31T19:19:35.000Z",
+    "createdAt": "2026-01-31T19:19:33.193Z",
+    "versionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
     "workflowId": "nZkKcr9dv2ddl5Ae",
     "nodes": [
       {
@@ -2714,6 +3417,29 @@
                   ],
                   "combinator": "and"
                 }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "18fcf6ab-06ef-4418-b04e-a9c4273fffe6",
+                      "leftValue": "={{ $node[\"Parse Callback\"].json.cb_type }}",
+                      "rightValue": "narrative",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
               }
             ]
           },
@@ -2723,7 +3449,7 @@
         "typeVersion": 3.4,
         "position": [
           608,
-          640
+          464
         ],
         "id": "f598330e-04f2-4130-97df-0e748fa6838a",
         "name": "Callback Router"
@@ -2808,7 +3534,7 @@
         "typeVersion": 3.4,
         "position": [
           832,
-          640
+          48
         ],
         "id": "966083ba-3142-4301-9751-475f6a8d1d93",
         "name": "Decision Router"
@@ -2870,7 +3596,7 @@
         "typeVersion": 3.4,
         "position": [
           832,
-          1136
+          592
         ],
         "id": "b52ca32c-e8e4-4a24-8280-e746037d8b85",
         "name": "Edit Target Router"
@@ -2887,7 +3613,7 @@
         "typeVersion": 1.2,
         "position": [
           -288,
-          128
+          400
         ],
         "id": "2244b9d7-21a0-419b-80ec-9bb7e34be9b0",
         "name": "TG Inbound",
@@ -2959,7 +3685,7 @@
         "typeVersion": 3.4,
         "position": [
           -64,
-          128
+          400
         ],
         "id": "a1c36c45-4cb4-48c4-8dee-4521d11508d2",
         "name": "Normalize Event"
@@ -3021,20 +3747,20 @@
         "typeVersion": 3.4,
         "position": [
           160,
-          128
+          400
         ],
         "id": "1a647bd9-110f-4a98-b29e-7a2d11b6e79a",
         "name": "Event Router"
       },
       {
         "parameters": {
-          "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  cb = { type: 'unknown', value: raw };\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      cb_type: String(cb.type || '').trim().toLowerCase(),     // platform | decision | topic | ...\n      cb_value: String(cb.value || '').trim().toUpperCase(),   // LINKEDIN | INSTAGRAM | APPROVE | EDIT | REGEN\n\n    },\n  },\n];\n"
+          "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  // Fallback for non-JSON callback payloads\n  cb = { type: 'unknown', value: raw };\n}\n\nconst valueRaw = String(cb.value ?? '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n\n      // Callback type (routing key)\n      // Always lowercase so router comparisons are stable:\n      //   topic | narrative | decision | platform | ...\n      cb_type: String(cb.type || '').trim().toLowerCase(),\n\n      // Raw callback value as sent in payload\n      // Keep this untouched for maximum flexibility\n      cb_value: valueRaw,\n\n      // Normalized helpers (WHY THEY EXIST):\n      //\n      // 1) Topic flow:\n      //    - buttons send numeric indices (\"0\"..\"4\")\n      //    - use cb_value_num to safely index topics array\n      //\n      // 2) Narrative flow:\n      //    - buttons send semantic values (\"yes\" / \"no\")\n      //    - compare via cb_value_lower === \"yes\"\n      //\n      // 3) Decision / platform flows:\n      //    - buttons send semantic enums (\"EDIT\", \"REGEN\", \"LINKEDIN\")\n      //    - compare via cb_value_upper === \"EDIT\"\n      //\n      // This avoids implicit coupling and fragile string handling.\n      cb_value_upper: valueRaw.toUpperCase(),\n      cb_value_lower: valueRaw.toLowerCase(),\n      cb_value_num: Number.isFinite(Number(valueRaw)) ? Number(valueRaw) : null,\n    },\n  },\n];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
           384,
-          656
+          512
         ],
         "id": "b8c42c7a-c254-415b-aa76-220bc80280c1",
         "name": "Parse Callback"
@@ -3095,7 +3821,7 @@
         "typeVersion": 3.4,
         "position": [
           832,
-          208
+          -352
         ],
         "id": "936dbba9-81df-44e0-9998-1c0754ce2f50",
         "name": "Platform Router"
@@ -3105,14 +3831,14 @@
           "resource": "callback",
           "queryId": "={{ $json.callback_query_id }}",
           "additionalFields": {
-            "text": "✅ Got it! Give it ~30sec."
+            "text": "Topic research! Give it ~15sec."
           }
         },
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
           1056,
-          192
+          -352
         ],
         "id": "bf8ed4d7-04dd-4f5c-8b9d-d330e938f75f",
         "name": "Ack Platform",
@@ -3139,7 +3865,7 @@
               "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
               "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
               "user_id": "={{ $('Platform Router').item.json.user_id }}",
-              "message_id": "={{ $json.message_id }}"
+              "message_id": "={{ $('Platform Router').item.json.message_id }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -3190,7 +3916,7 @@
         "typeVersion": 1.3,
         "position": [
           1280,
-          192
+          -352
         ],
         "id": "9a45394b-6bdd-4175-b505-59c32514a929",
         "name": "Start LI Create"
@@ -3270,7 +3996,7 @@
         "typeVersion": 1.3,
         "position": [
           1056,
-          400
+          -160
         ],
         "id": "f9b65830-32a7-4bf8-b742-f42e10bca22d",
         "name": "Publish LI Post"
@@ -3376,7 +4102,7 @@
         "typeVersion": 1.1,
         "position": [
           1056,
-          592
+          32
         ],
         "id": "025a98c8-41c7-49e2-aae4-1034dc43c7c7",
         "name": "Save Edit State",
@@ -3396,7 +4122,7 @@
         "typeVersion": 1.2,
         "position": [
           1280,
-          592
+          32
         ],
         "id": "6ed1c1d9-0fc3-4666-bb1e-33a3991f4db4",
         "name": "Prompt Edit Text",
@@ -3514,7 +4240,7 @@
         "typeVersion": 1.1,
         "position": [
           1504,
-          592
+          32
         ],
         "id": "68825c83-4c38-4d84-88e8-e6e2b79cf8c5",
         "name": "Save Prompt MsgId"
@@ -3598,7 +4324,7 @@
         "typeVersion": 1.1,
         "position": [
           1056,
-          784
+          224
         ],
         "id": "d6f6d13d-b3e1-400b-aa26-0ccb20bb2d6f",
         "name": "Save Edit Target",
@@ -3637,7 +4363,7 @@
         "typeVersion": 1.2,
         "position": [
           1280,
-          784
+          224
         ],
         "id": "b2f590d3-979d-4b5c-8f3f-870ce80dc3e1",
         "name": "Ask Edit Target",
@@ -3744,7 +4470,7 @@
         "typeVersion": 1.1,
         "position": [
           1504,
-          784
+          224
         ],
         "id": "425b76b0-a547-41e9-b99d-24ed8c37561b",
         "name": "Save Target State"
@@ -3847,7 +4573,7 @@
         "typeVersion": 1.1,
         "position": [
           1056,
-          976
+          416
         ],
         "id": "3ad7975b-6acd-43b9-9ea1-fadcff30f80e",
         "name": "Mark Edit Pending"
@@ -3866,7 +4592,7 @@
         "typeVersion": 1.2,
         "position": [
           1280,
-          976
+          416
         ],
         "id": "42c0162e-92df-46e4-b824-cebbe104e659",
         "name": "Prompt Regen Text",
@@ -3984,7 +4710,7 @@
         "typeVersion": 1.1,
         "position": [
           1504,
-          976
+          416
         ],
         "id": "b3eda29f-4922-4d59-9c8d-628642d804c3",
         "name": "Save Prompt MsgId 2"
@@ -4001,7 +4727,7 @@
         "typeVersion": 1.2,
         "position": [
           1056,
-          1168
+          608
         ],
         "id": "3bab6b05-8a7c-4c5d-b70c-a90ef0468c34",
         "name": "Ack Edit",
@@ -4068,7 +4794,7 @@
         "typeVersion": 1.3,
         "position": [
           1280,
-          1168
+          608
         ],
         "id": "392576e6-e947-43db-ae84-b888638eaea8",
         "name": "Start LI Create 2"
@@ -4129,8 +4855,8 @@
         "type": "n8n-nodes-base.switch",
         "typeVersion": 3.4,
         "position": [
-          448,
-          -64
+          384,
+          272
         ],
         "id": "ab5bea10-21b6-4812-a638-79309d671367",
         "name": "Message Router1"
@@ -4167,8 +4893,8 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          704,
-          -48
+          608,
+          272
         ],
         "id": "20ab7064-7fa8-44a1-9ef3-69e252252ccd",
         "name": "Ask Platform1",
@@ -4192,7 +4918,7 @@
         "typeVersion": 1.2,
         "position": [
           832,
-          1504
+          800
         ],
         "id": "09e7ccda-0291-45b5-9fe5-95fb3b3eda71",
         "name": "TG Ack Topic Click",
@@ -4203,6 +4929,595 @@
             "name": "Telegram account"
           }
         }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "HkvrktjanMJbfj6w",
+            "mode": "list",
+            "cachedResultName": "telegram_pending_edit",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "chat_id",
+                "keyValue": "={{ $json.chat_id }}"
+              },
+              {
+                "keyName": "pending_flow",
+                "keyValue": "LI_TOPIC"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1056,
+          992
+        ],
+        "id": "bbed9638-76f8-4fe1-a292-8fe257585b8e",
+        "name": "DT Get Pending LI_TOPIC"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "b043a1e4-e70e-4f58-b13f-395e87d0c906",
+                "leftValue": "={{ $node[\"Parse Callback\"].json.cb_value_lower }}",
+                "rightValue": "yes",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1280,
+          992
+        ],
+        "id": "cec39662-17de-4fb8-b57c-c98c26f141e9",
+        "name": "Narrative Yes?"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chat_id }}",
+          "text": "Write 2–5 sentences of extra narrative/context you want included (situation, emotion, lesson, constraint). Reply to this message.",
+          "replyMarkup": "forceReply",
+          "forceReply": {
+            "force_reply": true
+          },
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1504,
+          704
+        ],
+        "id": "89dcc151-080a-45e4-acd6-4660714a0ad6",
+        "name": "TG Prompt Narrative Text",
+        "webhookId": "81f98afb-92ae-4e1b-8816-0a7be8716643",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "HkvrktjanMJbfj6w",
+            "mode": "list",
+            "cachedResultName": "telegram_pending_edit",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "chat_id",
+                "keyValue": "={{ $json.chat_id }}"
+              },
+              {
+                "keyName": "pending_flow",
+                "keyValue": "LI_TOPIC"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "pending_step": "await_narrative_text",
+              "pending_prompt_message_id": "={{ $node[\"TG Prompt Narrative Text\"].json.result.message_id }}",
+              "pending_ts": "={{ Date.now() }}",
+              "expires_at": "={{ new Date(Date.now() + 30*60*1000).toISOString() }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "chat_id",
+                "displayName": "chat_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_flow",
+                "displayName": "pending_flow",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_step",
+                "displayName": "pending_step",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ref_table",
+                "displayName": "ref_table",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ref_id",
+                "displayName": "ref_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_source_message_id",
+                "displayName": "pending_source_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "callback_message_id",
+                "displayName": "callback_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_prompt_message_id",
+                "displayName": "pending_prompt_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_ts",
+                "displayName": "pending_ts",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "expires_at",
+                "displayName": "expires_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1728,
+          704
+        ],
+        "id": "066122ca-dfff-49f6-92ae-63aff473338d",
+        "name": "DT Set Await Narrative Text"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "HkvrktjanMJbfj6w",
+            "mode": "list",
+            "cachedResultName": "telegram_pending_edit",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "chat_id",
+                "keyValue": "={{ $json.chat_id }}"
+              },
+              {
+                "keyName": "pending_flow",
+                "keyValue": "LI_TOPIC"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "pending_step": "idle",
+              "pending_prompt_message_id": "={{ '' }}",
+              "pending_ts": "={{ Date.now() }}",
+              "expires_at": "={{ '' }}",
+              "ref_id": 0
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "chat_id",
+                "displayName": "chat_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_flow",
+                "displayName": "pending_flow",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_step",
+                "displayName": "pending_step",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ref_table",
+                "displayName": "ref_table",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ref_id",
+                "displayName": "ref_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_source_message_id",
+                "displayName": "pending_source_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "callback_message_id",
+                "displayName": "callback_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_prompt_message_id",
+                "displayName": "pending_prompt_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "pending_ts",
+                "displayName": "pending_ts",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "expires_at",
+                "displayName": "expires_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1504,
+          992
+        ],
+        "id": "bba24ffa-712b-4bb8-9abc-123567ee4447",
+        "name": "DT Clear LI_TOPIC Pending"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "JoMQUlojHVwsrUUP",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/JoMQUlojHVwsrUUP",
+            "cachedResultName": "LinkedIn Generate Post Content"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC\"].json.ref_id }}",
+              "chat_id": "={{ $json.chat_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "chat_id",
+                "displayName": "chat_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              },
+              {
+                "id": "pref_id",
+                "displayName": "pref_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1728,
+          992
+        ],
+        "id": "c0135bd0-917a-4536-adaa-90e76db1d99c",
+        "name": "Call WF Generate Post Content"
+      },
+      {
+        "parameters": {
+          "resource": "callback",
+          "queryId": "={{ $json.callback_query_id }}",
+          "additionalFields": {
+            "text": "Got it ✅"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          832,
+          992
+        ],
+        "id": "13d0c740-27ac-41c5-96e3-550b959a6fd9",
+        "name": "TG Ack Narrative Click",
+        "webhookId": "5ddf682d-3c6d-4107-9c02-ecfc2080b3de",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "OcUfWmTLwwrikzjh",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/OcUfWmTLwwrikzjh",
+            "cachedResultName": "LinkedIn Topic Selection Handler"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "chat_id": "={{ $json.chat_id }}",
+              "user_id": "={{ $json.chat_id }}",
+              "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC (topic)\"].json.ref_id }}",
+              "topic_index": "={{ $node[\"Parse Callback\"].json.cb_value_num }}",
+              "callback_query_id": "={{ $('Callback Router').item.json.callback_query_id }}",
+              "message_id": "={{ $('Callback Router').item.json.message_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "chat_id",
+                "displayName": "chat_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "user_id",
+                "displayName": "user_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "topic_index",
+                "displayName": "topic_index",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "number",
+                "removed": false
+              },
+              {
+                "id": "pref_id",
+                "displayName": "pref_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "number",
+                "removed": false
+              },
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "callback_query_id",
+                "displayName": "callback_query_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1200,
+          800
+        ],
+        "id": "9a0637d1-e833-4eda-b9e2-b421337d37b0",
+        "name": "Call WF Topic Pick Handler"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "HkvrktjanMJbfj6w",
+            "mode": "list",
+            "cachedResultName": "telegram_pending_edit",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "chat_id",
+                "keyValue": "={{ $('Callback Router').item.json.chat_id }}"
+              },
+              {
+                "keyName": "pending_flow",
+                "keyValue": "LI_TOPIC"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1008,
+          800
+        ],
+        "id": "8f946591-9884-4635-acf2-6765a8a9f99c",
+        "name": "DT Get Pending LI_TOPIC (topic)"
       },
       {
         "parameters": {
@@ -4288,8 +5603,8 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          2176,
-          -720
+          1504,
+          -768
         ],
         "id": "4031195f-8b5e-4111-91cc-5ec2d0ed00b2",
         "name": "Clear Edit State"
@@ -4339,8 +5654,8 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          1952,
-          -720
+          1280,
+          -768
         ],
         "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
         "name": "Show Preview"
@@ -4389,8 +5704,8 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          1744,
-          -592
+          1056,
+          -672
         ],
         "id": "007738fa-ad2b-40b1-9566-623f287b723b",
         "name": "Run Post Edit"
@@ -4404,8 +5719,8 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          1520,
-          -512
+          832,
+          -672
         ],
         "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
         "name": "Notify Post Edit",
@@ -4473,8 +5788,8 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          1728,
-          -800
+          1056,
+          -864
         ],
         "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
         "name": "Run Image Edit"
@@ -4488,7 +5803,7 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          1504,
+          832,
           -864
         ],
         "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
@@ -4557,8 +5872,8 @@
         "type": "n8n-nodes-base.switch",
         "typeVersion": 3.4,
         "position": [
-          1280,
-          -720
+          608,
+          -768
         ],
         "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
         "name": "Pending Action Router"
@@ -4595,8 +5910,8 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          1280,
-          -512
+          608,
+          -576
         ],
         "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
         "name": "Ask Platform",
@@ -4664,8 +5979,8 @@
         "type": "n8n-nodes-base.switch",
         "typeVersion": 3.4,
         "position": [
-          1056,
-          -560
+          384,
+          -672
         ],
         "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
         "name": "Message Router"
@@ -4675,8 +5990,8 @@
         "type": "n8n-nodes-base.merge",
         "typeVersion": 3.2,
         "position": [
-          832,
-          -560
+          160,
+          -672
         ],
         "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
         "name": "Merge Event+State"
@@ -4710,8 +6025,8 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          608,
-          -512
+          -64,
+          -672
         ],
         "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
         "name": "Map Edit Flags",
@@ -4740,8 +6055,8 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          384,
-          -512
+          -288,
+          -672
         ],
         "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
         "name": "Load Edit State",
@@ -4775,6 +6090,13 @@
           [
             {
               "node": "TG Ack Topic Click",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "TG Ack Narrative Click",
               "type": "main",
               "index": 0
             }
@@ -4992,6 +6314,90 @@
           ]
         ]
       },
+      "DT Get Pending LI_TOPIC": {
+        "main": [
+          [
+            {
+              "node": "Narrative Yes?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TG Prompt Narrative Text": {
+        "main": [
+          [
+            {
+              "node": "DT Set Await Narrative Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Narrative Yes?": {
+        "main": [
+          [
+            {
+              "node": "TG Prompt Narrative Text",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "DT Clear LI_TOPIC Pending",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "DT Clear LI_TOPIC Pending": {
+        "main": [
+          [
+            {
+              "node": "Call WF Generate Post Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TG Ack Narrative Click": {
+        "main": [
+          [
+            {
+              "node": "DT Get Pending LI_TOPIC",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TG Ack Topic Click": {
+        "main": [
+          [
+            {
+              "node": "DT Get Pending LI_TOPIC (topic)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "DT Get Pending LI_TOPIC (topic)": {
+        "main": [
+          [
+            {
+              "node": "Call WF Topic Pick Handler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
       "Show Preview": {
         "main": [
           [
@@ -5118,7 +6524,7 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 883abf1b",
+    "name": "Version 9f4be0cd",
     "description": "",
     "autosaved": false
   },
