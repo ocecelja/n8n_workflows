@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-31T19:19:33.191Z",
+  "updatedAt": "2026-02-01T20:14:02.361Z",
   "createdAt": "2026-01-14T07:26:22.500Z",
   "id": "nZkKcr9dv2ddl5Ae",
   "name": "Telegram Master Router",
@@ -437,7 +437,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  // Fallback for non-JSON callback payloads\n  cb = { type: 'unknown', value: raw };\n}\n\nconst valueRaw = String(cb.value ?? '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n\n      // Callback type (routing key)\n      // Always lowercase so router comparisons are stable:\n      //   topic | narrative | decision | platform | ...\n      cb_type: String(cb.type || '').trim().toLowerCase(),\n\n      // Raw callback value as sent in payload\n      // Keep this untouched for maximum flexibility\n      cb_value: valueRaw,\n\n      // Normalized helpers (WHY THEY EXIST):\n      //\n      // 1) Topic flow:\n      //    - buttons send numeric indices (\"0\"..\"4\")\n      //    - use cb_value_num to safely index topics array\n      //\n      // 2) Narrative flow:\n      //    - buttons send semantic values (\"yes\" / \"no\")\n      //    - compare via cb_value_lower === \"yes\"\n      //\n      // 3) Decision / platform flows:\n      //    - buttons send semantic enums (\"EDIT\", \"REGEN\", \"LINKEDIN\")\n      //    - compare via cb_value_upper === \"EDIT\"\n      //\n      // This avoids implicit coupling and fragile string handling.\n      cb_value_upper: valueRaw.toUpperCase(),\n      cb_value_lower: valueRaw.toLowerCase(),\n      cb_value_num: Number.isFinite(Number(valueRaw)) ? Number(valueRaw) : null,\n    },\n  },\n];"
+        "jsCode": "// Parse enhanced callback structure with flow context\nconst rawData = $json.callback_query?.data || '';\n\nlet cbData;\ntry {\n  // Try JSON parse first (new format)\n  cbData = JSON.parse(rawData);\n} catch (e) {\n  // Fallback to legacy format parsing\n  if (rawData.includes(':')) {\n    const [type, value] = rawData.split(':');\n    cbData = { type, value };\n  } else {\n    cbData = { type: 'unknown', value: rawData };\n  }\n}\n\n// Extract callback context\nreturn [{\n  json: {\n    ...$json,\n    cb_type: cbData.type || 'unknown',\n    cb_chat_id: cbData.chat_id || null,\n    cb_flow_instance_id: cbData.flow_instance_id || null,\n    cb_pref_id: cbData.pref_id || null,\n    cb_value: cbData.value || null,\n    cb_timestamp: cbData.timestamp || null,\n    cb_message_id: cbData.message_id || null,\n    cb_raw: rawData\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -535,65 +535,16 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "mJatCdnL86VthoQD",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/mJatCdnL86VthoQD",
-          "cachedResultName": "LinkedIn Topic Research"
-        },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
-            "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
-            "user_id": "={{ $('Platform Router').item.json.user_id }}",
-            "message_id": "={{ $('Platform Router').item.json.message_id }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "chat_id",
-              "displayName": "chat_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "text",
-              "displayName": "text",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
+            "chat_id": "={{ $json.chat_id }}",
+            "user_id": "={{ $json.user_id }}",
+            "text": "={{ $json.text }}",
+            "message_id": "={{ $json.message_id }}",
+            "flow_instance_id": "={{ $json.flow_instance_id }}"
+          }
+        }
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
@@ -1649,10 +1600,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 3,
             "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
+            "caseSensitive": true,
+            "typeValidation": "strict"
           },
           "conditions": [
             {
@@ -2002,44 +1953,14 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "JoMQUlojHVwsrUUP",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/JoMQUlojHVwsrUUP",
-          "cachedResultName": "LinkedIn Generate Post Content"
-        },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC\"].json.ref_id }}",
-            "chat_id": "={{ $json.chat_id }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "chat_id",
-              "displayName": "chat_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "pref_id",
-              "displayName": "pref_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
+            "chat_id": "={{ $json.chat_id }}",
+            "pref_id": "={{ $json.ref_id }}",
+            "flow_instance_id": "={{ $json.flow_instance_id }}"
+          }
+        }
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
@@ -2076,90 +1997,18 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "OcUfWmTLwwrikzjh",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/OcUfWmTLwwrikzjh",
-          "cachedResultName": "LinkedIn Topic Selection Handler"
-        },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "chat_id": "={{ $json.chat_id }}",
-            "user_id": "={{ $json.chat_id }}",
-            "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC (topic)\"].json.ref_id }}",
-            "topic_index": "={{ $node[\"Parse Callback\"].json.cb_value_num }}",
-            "callback_query_id": "={{ $('Callback Router').item.json.callback_query_id }}",
-            "message_id": "={{ $('Callback Router').item.json.message_id }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "chat_id",
-              "displayName": "chat_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "topic_index",
-              "displayName": "topic_index",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
-            },
-            {
-              "id": "pref_id",
-              "displayName": "pref_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
-            },
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "callback_query_id",
-              "displayName": "callback_query_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
+            "user_id": "={{ $json.user_id }}",
+            "topic_index": "={{ Number($json.cb_value) }}",
+            "pref_id": "={{ $json.ref_id }}",
+            "message_id": "={{ $json.callback_message_id }}",
+            "callback_query_id": "={{ $json.callback_query_id }}",
+            "flow_instance_id": "={{ $json.flow_instance_id || $json.cb_flow_instance_id }}"
+          }
+        }
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
@@ -2189,6 +2038,10 @@
             {
               "keyName": "pending_flow",
               "keyValue": "LI_TOPIC"
+            },
+            {
+              "keyName": "callback_message_id",
+              "keyValue": "={{ $('Callback Router').item.json.menu_message_id }}"
             }
           ]
         }
@@ -2201,6 +2054,459 @@
       ],
       "id": "8f946591-9884-4635-acf2-6765a8a9f99c",
       "name": "DT Get Pending LI_TOPIC (topic)"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "HkvrktjanMJbfj6w",
+          "mode": "list",
+          "cachedResultName": "telegram_pending_edit",
+          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pending_prompt_message_id",
+              "keyValue": "={{ $json.reply_to_message_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        -672
+      ],
+      "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
+      "name": "Load Edit State",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f7590b35-3345-4556-8282-f8ac4769785b",
+              "name": "pending_edit",
+              "value": "={{ $json.pending_step !== 'idle' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "0f16cd79-9a98-46a2-9fc3-01d5add40006",
+              "name": "pending_edit_target",
+              "value": "={{ $json.pending_target ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "31c560c3-8f7a-4fde-815a-8d8db663115e",
+              "name": "pending_source_message_id",
+              "value": "={{ $json.pending_source_message_id ?? '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        -672
+      ],
+      "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
+      "name": "Map Edit Flags",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        160,
+        -672
+      ],
+      "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
+      "name": "Merge Event+State"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "21fc2b2d-3ad6-47b2-830d-16d95cf655e1",
+                    "leftValue": "={{ $json.pending_edit }}",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.text || '').trim().toLowerCase() }}",
+                    "rightValue": "/post",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e0cff0cb-aae6-4627-aa3f-9396571dc766"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        -672
+      ],
+      "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
+      "name": "Message Router"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "Where do you want to generate a post?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "💼 LinkedIn",
+                    "additionalFields": {
+                      "callback_data": "{\"type\":\"platform\",\"value\":\"LINKEDIN\"}"
+                    }
+                  },
+                  {
+                    "text": "📸 Instagram",
+                    "additionalFields": {
+                      "callback_data": "{\"type\":\"platform\",\"value\":\"INSTAGRAM\"}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        -576
+      ],
+      "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
+      "name": "Ask Platform",
+      "webhookId": "b9d3d4fe-af6c-47d3-85bc-2868b6c0f097",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.pending_edit_target }}",
+                    "rightValue": "PHOTO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1d50012c-b8bb-4edd-9a1d-c3ff00ce7e85"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "49935db7-3218-4fb5-9813-a9993ba85c2f",
+                    "leftValue": "={{ $json.pending_edit_target }}",
+                    "rightValue": "EDIT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        -768
+      ],
+      "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
+      "name": "Pending Action Router"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Event Router').item.json.chat_id }}",
+        "text": "✅ Got it — re-generating image..",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        -864
+      ],
+      "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
+      "name": "Notify Regen",
+      "webhookId": "5b1f35ab-04fa-4e1d-815d-08da5e9e2690",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uV2nYAKK2etP3V8M",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uV2nYAKK2etP3V8M",
+          "cachedResultName": "Generate Image"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
+            "user_edit": "={{ $('Event Router').item.json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_edit",
+              "displayName": "user_edit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        -864
+      ],
+      "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
+      "name": "Run Image Edit"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Event Router').item.json.chat_id }}",
+        "text": "📝 Got it. Editing post content...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        -672
+      ],
+      "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
+      "name": "Notify Post Edit",
+      "webhookId": "097ac4c8-5a4b-44bb-898e-6e4559416cf5",
+      "credentials": {
+        "telegramApi": {
+          "id": "0x6YfcdWFvx71vgi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "LLQ5sFn2xrQtOOzy",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/LLQ5sFn2xrQtOOzy",
+          "cachedResultName": "LinkedIn Post Edit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
+            "user_edit": "={{ $('Event Router').item.json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "user_edit",
+              "displayName": "user_edit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        -672
+      ],
+      "id": "007738fa-ad2b-40b1-9566-623f287b723b",
+      "name": "Run Post Edit"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CQMOekrQxamRkw0P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CQMOekrQxamRkw0P",
+          "cachedResultName": "Telegram Post Preview"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        -768
+      ],
+      "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
+      "name": "Show Preview"
     },
     {
       "parameters": {
@@ -2293,457 +2599,30 @@
       "name": "Clear Edit State"
     },
     {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "CQMOekrQxamRkw0P",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/CQMOekrQxamRkw0P",
-          "cachedResultName": "Telegram Post Preview"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "content_id",
-              "displayName": "content_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
+      "id": "generate-flow-instance-node",
+      "name": "Generate Flow Instance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1280,
-        -768
+        80,
+        400
       ],
-      "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
-      "name": "Show Preview"
-    },
-    {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "LLQ5sFn2xrQtOOzy",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/LLQ5sFn2xrQtOOzy",
-          "cachedResultName": "LinkedIn Post Edit"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
-            "user_edit": "={{ $('Event Router').item.json.text }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "user_edit",
-              "displayName": "user_edit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        1056,
-        -672
-      ],
-      "id": "007738fa-ad2b-40b1-9566-623f287b723b",
-      "name": "Run Post Edit"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Event Router').item.json.chat_id }}",
-        "text": "📝 Got it. Editing post content...",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        832,
-        -672
-      ],
-      "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
-      "name": "Notify Post Edit",
-      "webhookId": "097ac4c8-5a4b-44bb-898e-6e4559416cf5",
-      "credentials": {
-        "telegramApi": {
-          "id": "0x6YfcdWFvx71vgi",
-          "name": "Telegram account"
-        }
+        "jsCode": "// Generate unique flow_instance_id for this conversation\nconst chatId = $json.chat_id || '';\nconst timestamp = Date.now();\nconst random = Math.random().toString(36).substring(2, 8);\nconst flow_instance_id = `${chatId}_${timestamp}_${random}`;\n\nreturn [{\n  json: {\n    ...$json,\n    flow_instance_id,\n    flow_start_time: timestamp\n  }\n}];\n"
       }
     },
     {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "uV2nYAKK2etP3V8M",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/uV2nYAKK2etP3V8M",
-          "cachedResultName": "Generate Image"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
-            "user_edit": "={{ $('Event Router').item.json.text }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "content_id",
-              "displayName": "content_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": true
-            },
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "user_edit",
-              "displayName": "user_edit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
+      "id": "validate-callback-security",
+      "name": "Validate Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1056,
-        -864
+        496,
+        512
       ],
-      "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
-      "name": "Run Image Edit"
-    },
-    {
       "parameters": {
-        "chatId": "={{ $('Event Router').item.json.chat_id }}",
-        "text": "✅ Got it — re-generating image..",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        832,
-        -864
-      ],
-      "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
-      "name": "Notify Regen",
-      "webhookId": "5b1f35ab-04fa-4e1d-815d-08da5e9e2690",
-      "credentials": {
-        "telegramApi": {
-          "id": "0x6YfcdWFvx71vgi",
-          "name": "Telegram account"
-        }
+        "jsCode": "// CRITICAL SECURITY: Multi-layer callback validation\nconst cbData = $json;\nconst actualChatId = $json.callback_query?.message?.chat?.id?.toString() || '';\n\n// Skip validation for legacy callbacks (backward compatibility)\nif (!cbData.cb_flow_instance_id) {\n  return [{ json: { valid: true, legacy: true, ...cbData } }];\n}\n\n// 1. Ownership check\nif (cbData.cb_chat_id && cbData.cb_chat_id !== actualChatId) {\n  throw new Error(\"⚠️ This button doesn't belong to your conversation\");\n}\n\n// 2. Freshness check (30 min)\nif (cbData.cb_timestamp) {\n  const age = Date.now() - cbData.cb_timestamp;\n  if (age > 30 * 60 * 1000) {\n    throw new Error(\"⏱️ Menu expired (30min). Use /post to restart\");\n  }\n}\n\n// All checks passed\nreturn [{ json: { valid: true, ...cbData } }];\n"
       }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.pending_edit_target }}",
-                    "rightValue": "PHOTO",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "1d50012c-b8bb-4edd-9a1d-c3ff00ce7e85"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "49935db7-3218-4fb5-9813-a9993ba85c2f",
-                    "leftValue": "={{ $json.pending_edit_target }}",
-                    "rightValue": "EDIT",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        608,
-        -768
-      ],
-      "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
-      "name": "Pending Action Router"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json.chat_id }}",
-        "text": "Where do you want to generate a post?",
-        "replyMarkup": "inlineKeyboard",
-        "inlineKeyboard": {
-          "rows": [
-            {
-              "row": {
-                "buttons": [
-                  {
-                    "text": "💼 LinkedIn",
-                    "additionalFields": {
-                      "callback_data": "{\"type\":\"platform\",\"value\":\"LINKEDIN\"}"
-                    }
-                  },
-                  {
-                    "text": "📸 Instagram",
-                    "additionalFields": {
-                      "callback_data": "{\"type\":\"platform\",\"value\":\"INSTAGRAM\"}"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        608,
-        -576
-      ],
-      "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
-      "name": "Ask Platform",
-      "webhookId": "b9d3d4fe-af6c-47d3-85bc-2868b6c0f097",
-      "credentials": {
-        "telegramApi": {
-          "id": "0x6YfcdWFvx71vgi",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "21fc2b2d-3ad6-47b2-830d-16d95cf655e1",
-                    "leftValue": "={{ $json.pending_edit }}",
-                    "rightValue": "1",
-                    "operator": {
-                      "type": "boolean",
-                      "operation": "true",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ ($json.text || '').trim().toLowerCase() }}",
-                    "rightValue": "/post",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "e0cff0cb-aae6-4627-aa3f-9396571dc766"
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        384,
-        -672
-      ],
-      "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
-      "name": "Message Router"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        160,
-        -672
-      ],
-      "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
-      "name": "Merge Event+State"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "f7590b35-3345-4556-8282-f8ac4769785b",
-              "name": "pending_edit",
-              "value": "={{ $json.pending_step !== 'idle' }}",
-              "type": "boolean"
-            },
-            {
-              "id": "0f16cd79-9a98-46a2-9fc3-01d5add40006",
-              "name": "pending_edit_target",
-              "value": "={{ $json.pending_target ?? '' }}",
-              "type": "string"
-            },
-            {
-              "id": "31c560c3-8f7a-4fde-815a-8d8db663115e",
-              "name": "pending_source_message_id",
-              "value": "={{ $json.pending_source_message_id ?? '' }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -64,
-        -672
-      ],
-      "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
-      "name": "Map Edit Flags",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "HkvrktjanMJbfj6w",
-          "mode": "list",
-          "cachedResultName": "telegram_pending_edit",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "pending_prompt_message_id",
-              "keyValue": "={{ $json.reply_to_message_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        -288,
-        -672
-      ],
-      "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
-      "name": "Load Edit State",
-      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -2844,7 +2723,7 @@
       "main": [
         [
           {
-            "node": "Event Router",
+            "node": "Generate Flow Instance",
             "type": "main",
             "index": 0
           }
@@ -2873,7 +2752,7 @@
       "main": [
         [
           {
-            "node": "Callback Router",
+            "node": "Validate Callback",
             "type": "main",
             "index": 0
           }
@@ -3081,22 +2960,80 @@
         ]
       ]
     },
-    "Show Preview": {
+    "Load Edit State": {
       "main": [
         [
           {
-            "node": "Clear Edit State",
+            "node": "Map Edit Flags",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Run Post Edit": {
+    "Map Edit Flags": {
       "main": [
         [
           {
-            "node": "Show Preview",
+            "node": "Merge Event+State",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Event+State": {
+      "main": [
+        [
+          {
+            "node": "Message Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Router": {
+      "main": [
+        [
+          {
+            "node": "Pending Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending Action Router": {
+      "main": [
+        [
+          {
+            "node": "Notify Regen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Post Edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Regen": {
+      "main": [
+        [
+          {
+            "node": "Run Image Edit",
             "type": "main",
             "index": 0
           }
@@ -3125,80 +3062,44 @@
         ]
       ]
     },
-    "Notify Regen": {
+    "Run Post Edit": {
       "main": [
         [
           {
-            "node": "Run Image Edit",
+            "node": "Show Preview",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pending Action Router": {
+    "Show Preview": {
       "main": [
         [
           {
-            "node": "Notify Regen",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Notify Post Edit",
+            "node": "Clear Edit State",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Message Router": {
+    "Generate Flow Instance": {
       "main": [
         [
           {
-            "node": "Pending Action Router",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Ask Platform",
+            "node": "Event Router",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge Event+State": {
+    "Validate Callback": {
       "main": [
         [
           {
-            "node": "Message Router",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Map Edit Flags": {
-      "main": [
-        [
-          {
-            "node": "Merge Event+State",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Load Edit State": {
-      "main": [
-        [
-          {
-            "node": "Map Edit Flags",
+            "node": "Callback Router",
             "type": "main",
             "index": 0
           }
@@ -3208,7 +3109,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": {
     "global": {
@@ -3305,8 +3207,8 @@
       }
     ]
   },
-  "versionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
-  "activeVersionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
+  "versionId": "2792835e-41cb-4893-ae44-40b5cfcf9ea1",
+  "activeVersionId": "2792835e-41cb-4893-ae44-40b5cfcf9ea1",
   "triggerCount": 1,
   "shared": [
     {
@@ -3318,9 +3220,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-31T19:19:35.000Z",
-    "createdAt": "2026-01-31T19:19:33.193Z",
-    "versionId": "9f4be0cd-ebf0-463d-b153-41515d4ded65",
+    "updatedAt": "2026-02-01T20:14:02.362Z",
+    "createdAt": "2026-02-01T20:14:02.362Z",
+    "versionId": "2792835e-41cb-4893-ae44-40b5cfcf9ea1",
     "workflowId": "nZkKcr9dv2ddl5Ae",
     "nodes": [
       {
@@ -3754,7 +3656,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const raw = ($json.callback_data || '').trim();\n\nlet cb;\ntry {\n  cb = JSON.parse(raw);\n} catch (e) {\n  // Fallback for non-JSON callback payloads\n  cb = { type: 'unknown', value: raw };\n}\n\nconst valueRaw = String(cb.value ?? '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n\n      // Callback type (routing key)\n      // Always lowercase so router comparisons are stable:\n      //   topic | narrative | decision | platform | ...\n      cb_type: String(cb.type || '').trim().toLowerCase(),\n\n      // Raw callback value as sent in payload\n      // Keep this untouched for maximum flexibility\n      cb_value: valueRaw,\n\n      // Normalized helpers (WHY THEY EXIST):\n      //\n      // 1) Topic flow:\n      //    - buttons send numeric indices (\"0\"..\"4\")\n      //    - use cb_value_num to safely index topics array\n      //\n      // 2) Narrative flow:\n      //    - buttons send semantic values (\"yes\" / \"no\")\n      //    - compare via cb_value_lower === \"yes\"\n      //\n      // 3) Decision / platform flows:\n      //    - buttons send semantic enums (\"EDIT\", \"REGEN\", \"LINKEDIN\")\n      //    - compare via cb_value_upper === \"EDIT\"\n      //\n      // This avoids implicit coupling and fragile string handling.\n      cb_value_upper: valueRaw.toUpperCase(),\n      cb_value_lower: valueRaw.toLowerCase(),\n      cb_value_num: Number.isFinite(Number(valueRaw)) ? Number(valueRaw) : null,\n    },\n  },\n];"
+          "jsCode": "// Parse enhanced callback structure with flow context\nconst rawData = $json.callback_query?.data || '';\n\nlet cbData;\ntry {\n  // Try JSON parse first (new format)\n  cbData = JSON.parse(rawData);\n} catch (e) {\n  // Fallback to legacy format parsing\n  if (rawData.includes(':')) {\n    const [type, value] = rawData.split(':');\n    cbData = { type, value };\n  } else {\n    cbData = { type: 'unknown', value: rawData };\n  }\n}\n\n// Extract callback context\nreturn [{\n  json: {\n    ...$json,\n    cb_type: cbData.type || 'unknown',\n    cb_chat_id: cbData.chat_id || null,\n    cb_flow_instance_id: cbData.flow_instance_id || null,\n    cb_pref_id: cbData.pref_id || null,\n    cb_value: cbData.value || null,\n    cb_timestamp: cbData.timestamp || null,\n    cb_message_id: cbData.message_id || null,\n    cb_raw: rawData\n  }\n}];\n"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -3852,65 +3754,16 @@
       },
       {
         "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "mJatCdnL86VthoQD",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/mJatCdnL86VthoQD",
-            "cachedResultName": "LinkedIn Topic Research"
-          },
           "workflowInputs": {
             "mappingMode": "defineBelow",
             "value": {
-              "text": "={{ '/post ' + $('Parse Callback').item.json.cb_value }}",
-              "chat_id": "={{ $('Platform Router').item.json.chat_id }}",
-              "user_id": "={{ $('Platform Router').item.json.user_id }}",
-              "message_id": "={{ $('Platform Router').item.json.message_id }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "chat_id",
-                "displayName": "chat_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              },
-              {
-                "id": "user_id",
-                "displayName": "user_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              },
-              {
-                "id": "text",
-                "displayName": "text",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              },
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
+              "chat_id": "={{ $json.chat_id }}",
+              "user_id": "={{ $json.user_id }}",
+              "text": "={{ $json.text }}",
+              "message_id": "={{ $json.message_id }}",
+              "flow_instance_id": "={{ $json.flow_instance_id }}"
+            }
+          }
         },
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
@@ -4966,10 +4819,10 @@
         "parameters": {
           "conditions": {
             "options": {
-              "caseSensitive": true,
+              "version": 3,
               "leftValue": "",
-              "typeValidation": "strict",
-              "version": 3
+              "caseSensitive": true,
+              "typeValidation": "strict"
             },
             "conditions": [
               {
@@ -5319,44 +5172,14 @@
       },
       {
         "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "JoMQUlojHVwsrUUP",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/JoMQUlojHVwsrUUP",
-            "cachedResultName": "LinkedIn Generate Post Content"
-          },
           "workflowInputs": {
             "mappingMode": "defineBelow",
             "value": {
-              "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC\"].json.ref_id }}",
-              "chat_id": "={{ $json.chat_id }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "chat_id",
-                "displayName": "chat_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              },
-              {
-                "id": "pref_id",
-                "displayName": "pref_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
+              "chat_id": "={{ $json.chat_id }}",
+              "pref_id": "={{ $json.ref_id }}",
+              "flow_instance_id": "={{ $json.flow_instance_id }}"
+            }
+          }
         },
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
@@ -5393,90 +5216,18 @@
       },
       {
         "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "OcUfWmTLwwrikzjh",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/OcUfWmTLwwrikzjh",
-            "cachedResultName": "LinkedIn Topic Selection Handler"
-          },
           "workflowInputs": {
             "mappingMode": "defineBelow",
             "value": {
               "chat_id": "={{ $json.chat_id }}",
-              "user_id": "={{ $json.chat_id }}",
-              "pref_id": "={{ $node[\"DT Get Pending LI_TOPIC (topic)\"].json.ref_id }}",
-              "topic_index": "={{ $node[\"Parse Callback\"].json.cb_value_num }}",
-              "callback_query_id": "={{ $('Callback Router').item.json.callback_query_id }}",
-              "message_id": "={{ $('Callback Router').item.json.message_id }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "chat_id",
-                "displayName": "chat_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              },
-              {
-                "id": "user_id",
-                "displayName": "user_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              },
-              {
-                "id": "topic_index",
-                "displayName": "topic_index",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "number",
-                "removed": false
-              },
-              {
-                "id": "pref_id",
-                "displayName": "pref_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "number",
-                "removed": false
-              },
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              },
-              {
-                "id": "callback_query_id",
-                "displayName": "callback_query_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
+              "user_id": "={{ $json.user_id }}",
+              "topic_index": "={{ Number($json.cb_value) }}",
+              "pref_id": "={{ $json.ref_id }}",
+              "message_id": "={{ $json.callback_message_id }}",
+              "callback_query_id": "={{ $json.callback_query_id }}",
+              "flow_instance_id": "={{ $json.flow_instance_id || $json.cb_flow_instance_id }}"
+            }
+          }
         },
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
@@ -5506,6 +5257,10 @@
               {
                 "keyName": "pending_flow",
                 "keyValue": "LI_TOPIC"
+              },
+              {
+                "keyName": "callback_message_id",
+                "keyValue": "={{ $('Callback Router').item.json.menu_message_id }}"
               }
             ]
           }
@@ -5518,6 +5273,459 @@
         ],
         "id": "8f946591-9884-4635-acf2-6765a8a9f99c",
         "name": "DT Get Pending LI_TOPIC (topic)"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "HkvrktjanMJbfj6w",
+            "mode": "list",
+            "cachedResultName": "telegram_pending_edit",
+            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "pending_prompt_message_id",
+                "keyValue": "={{ $json.reply_to_message_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -288,
+          -672
+        ],
+        "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
+        "name": "Load Edit State",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f7590b35-3345-4556-8282-f8ac4769785b",
+                "name": "pending_edit",
+                "value": "={{ $json.pending_step !== 'idle' }}",
+                "type": "boolean"
+              },
+              {
+                "id": "0f16cd79-9a98-46a2-9fc3-01d5add40006",
+                "name": "pending_edit_target",
+                "value": "={{ $json.pending_target ?? '' }}",
+                "type": "string"
+              },
+              {
+                "id": "31c560c3-8f7a-4fde-815a-8d8db663115e",
+                "name": "pending_source_message_id",
+                "value": "={{ $json.pending_source_message_id ?? '' }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -64,
+          -672
+        ],
+        "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
+        "name": "Map Edit Flags",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          160,
+          -672
+        ],
+        "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
+        "name": "Merge Event+State"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "21fc2b2d-3ad6-47b2-830d-16d95cf655e1",
+                      "leftValue": "={{ $json.pending_edit }}",
+                      "rightValue": "1",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ ($json.text || '').trim().toLowerCase() }}",
+                      "rightValue": "/post",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "e0cff0cb-aae6-4627-aa3f-9396571dc766"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          384,
+          -672
+        ],
+        "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
+        "name": "Message Router"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chat_id }}",
+          "text": "Where do you want to generate a post?",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "💼 LinkedIn",
+                      "additionalFields": {
+                        "callback_data": "{\"type\":\"platform\",\"value\":\"LINKEDIN\"}"
+                      }
+                    },
+                    {
+                      "text": "📸 Instagram",
+                      "additionalFields": {
+                        "callback_data": "{\"type\":\"platform\",\"value\":\"INSTAGRAM\"}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          608,
+          -576
+        ],
+        "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
+        "name": "Ask Platform",
+        "webhookId": "b9d3d4fe-af6c-47d3-85bc-2868b6c0f097",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.pending_edit_target }}",
+                      "rightValue": "PHOTO",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "1d50012c-b8bb-4edd-9a1d-c3ff00ce7e85"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "49935db7-3218-4fb5-9813-a9993ba85c2f",
+                      "leftValue": "={{ $json.pending_edit_target }}",
+                      "rightValue": "EDIT",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          608,
+          -768
+        ],
+        "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
+        "name": "Pending Action Router"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Event Router').item.json.chat_id }}",
+          "text": "✅ Got it — re-generating image..",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          832,
+          -864
+        ],
+        "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
+        "name": "Notify Regen",
+        "webhookId": "5b1f35ab-04fa-4e1d-815d-08da5e9e2690",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "uV2nYAKK2etP3V8M",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/uV2nYAKK2etP3V8M",
+            "cachedResultName": "Generate Image"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
+              "user_edit": "={{ $('Event Router').item.json.text }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "content_id",
+                "displayName": "content_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": true
+              },
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "user_edit",
+                "displayName": "user_edit",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1056,
+          -864
+        ],
+        "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
+        "name": "Run Image Edit"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Event Router').item.json.chat_id }}",
+          "text": "📝 Got it. Editing post content...",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          832,
+          -672
+        ],
+        "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
+        "name": "Notify Post Edit",
+        "webhookId": "097ac4c8-5a4b-44bb-898e-6e4559416cf5",
+        "credentials": {
+          "telegramApi": {
+            "id": "0x6YfcdWFvx71vgi",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "LLQ5sFn2xrQtOOzy",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/LLQ5sFn2xrQtOOzy",
+            "cachedResultName": "LinkedIn Post Edit"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
+              "user_edit": "={{ $('Event Router').item.json.text }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              },
+              {
+                "id": "user_edit",
+                "displayName": "user_edit",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1056,
+          -672
+        ],
+        "id": "007738fa-ad2b-40b1-9566-623f287b723b",
+        "name": "Run Post Edit"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "CQMOekrQxamRkw0P",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/CQMOekrQxamRkw0P",
+            "cachedResultName": "Telegram Post Preview"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "content_id",
+                "displayName": "content_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1280,
+          -768
+        ],
+        "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
+        "name": "Show Preview"
       },
       {
         "parameters": {
@@ -5610,457 +5818,30 @@
         "name": "Clear Edit State"
       },
       {
-        "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "CQMOekrQxamRkw0P",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/CQMOekrQxamRkw0P",
-            "cachedResultName": "Telegram Post Preview"
-          },
-          "workflowInputs": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              },
-              {
-                "id": "content_id",
-                "displayName": "content_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": true
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.3,
+        "id": "generate-flow-instance-node",
+        "name": "Generate Flow Instance",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
         "position": [
-          1280,
-          -768
+          80,
+          400
         ],
-        "id": "748d8efa-692e-487b-b8e5-6a98f8400cf8",
-        "name": "Show Preview"
-      },
-      {
         "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "LLQ5sFn2xrQtOOzy",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/LLQ5sFn2xrQtOOzy",
-            "cachedResultName": "LinkedIn Post Edit"
-          },
-          "workflowInputs": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
-              "user_edit": "={{ $('Event Router').item.json.text }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              },
-              {
-                "id": "user_edit",
-                "displayName": "user_edit",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string"
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.3,
-        "position": [
-          1056,
-          -672
-        ],
-        "id": "007738fa-ad2b-40b1-9566-623f287b723b",
-        "name": "Run Post Edit"
-      },
-      {
-        "parameters": {
-          "chatId": "={{ $('Event Router').item.json.chat_id }}",
-          "text": "📝 Got it. Editing post content...",
-          "additionalFields": {}
-        },
-        "type": "n8n-nodes-base.telegram",
-        "typeVersion": 1.2,
-        "position": [
-          832,
-          -672
-        ],
-        "id": "2ef06084-42ff-4e14-982c-b5afba031ab0",
-        "name": "Notify Post Edit",
-        "webhookId": "097ac4c8-5a4b-44bb-898e-6e4559416cf5",
-        "credentials": {
-          "telegramApi": {
-            "id": "0x6YfcdWFvx71vgi",
-            "name": "Telegram account"
-          }
+          "jsCode": "// Generate unique flow_instance_id for this conversation\nconst chatId = $json.chat_id || '';\nconst timestamp = Date.now();\nconst random = Math.random().toString(36).substring(2, 8);\nconst flow_instance_id = `${chatId}_${timestamp}_${random}`;\n\nreturn [{\n  json: {\n    ...$json,\n    flow_instance_id,\n    flow_start_time: timestamp\n  }\n}];\n"
         }
       },
       {
-        "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "uV2nYAKK2etP3V8M",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/uV2nYAKK2etP3V8M",
-            "cachedResultName": "Generate Image"
-          },
-          "workflowInputs": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "message_id": "={{ $('Pending Action Router').item.json.pending_source_message_id }}",
-              "user_edit": "={{ $('Event Router').item.json.text }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "content_id",
-                "displayName": "content_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": true
-              },
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              },
-              {
-                "id": "user_edit",
-                "displayName": "user_edit",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.3,
+        "id": "validate-callback-security",
+        "name": "Validate Callback",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
         "position": [
-          1056,
-          -864
+          496,
+          512
         ],
-        "id": "8f166754-f6e8-4b64-b9a8-b0adba6b6b8f",
-        "name": "Run Image Edit"
-      },
-      {
         "parameters": {
-          "chatId": "={{ $('Event Router').item.json.chat_id }}",
-          "text": "✅ Got it — re-generating image..",
-          "additionalFields": {}
-        },
-        "type": "n8n-nodes-base.telegram",
-        "typeVersion": 1.2,
-        "position": [
-          832,
-          -864
-        ],
-        "id": "2301b6da-e3cc-41ee-91f9-854ce987b696",
-        "name": "Notify Regen",
-        "webhookId": "5b1f35ab-04fa-4e1d-815d-08da5e9e2690",
-        "credentials": {
-          "telegramApi": {
-            "id": "0x6YfcdWFvx71vgi",
-            "name": "Telegram account"
-          }
+          "jsCode": "// CRITICAL SECURITY: Multi-layer callback validation\nconst cbData = $json;\nconst actualChatId = $json.callback_query?.message?.chat?.id?.toString() || '';\n\n// Skip validation for legacy callbacks (backward compatibility)\nif (!cbData.cb_flow_instance_id) {\n  return [{ json: { valid: true, legacy: true, ...cbData } }];\n}\n\n// 1. Ownership check\nif (cbData.cb_chat_id && cbData.cb_chat_id !== actualChatId) {\n  throw new Error(\"⚠️ This button doesn't belong to your conversation\");\n}\n\n// 2. Freshness check (30 min)\nif (cbData.cb_timestamp) {\n  const age = Date.now() - cbData.cb_timestamp;\n  if (age > 30 * 60 * 1000) {\n    throw new Error(\"⏱️ Menu expired (30min). Use /post to restart\");\n  }\n}\n\n// All checks passed\nreturn [{ json: { valid: true, ...cbData } }];\n"
         }
-      },
-      {
-        "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.pending_edit_target }}",
-                      "rightValue": "PHOTO",
-                      "operator": {
-                        "type": "string",
-                        "operation": "equals"
-                      },
-                      "id": "1d50012c-b8bb-4edd-9a1d-c3ff00ce7e85"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "49935db7-3218-4fb5-9813-a9993ba85c2f",
-                      "leftValue": "={{ $json.pending_edit_target }}",
-                      "rightValue": "EDIT",
-                      "operator": {
-                        "type": "string",
-                        "operation": "equals",
-                        "name": "filter.operator.equals"
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          608,
-          -768
-        ],
-        "id": "188ac96a-57ac-4d38-9a68-5ede05ab60f7",
-        "name": "Pending Action Router"
-      },
-      {
-        "parameters": {
-          "chatId": "={{ $json.chat_id }}",
-          "text": "Where do you want to generate a post?",
-          "replyMarkup": "inlineKeyboard",
-          "inlineKeyboard": {
-            "rows": [
-              {
-                "row": {
-                  "buttons": [
-                    {
-                      "text": "💼 LinkedIn",
-                      "additionalFields": {
-                        "callback_data": "{\"type\":\"platform\",\"value\":\"LINKEDIN\"}"
-                      }
-                    },
-                    {
-                      "text": "📸 Instagram",
-                      "additionalFields": {
-                        "callback_data": "{\"type\":\"platform\",\"value\":\"INSTAGRAM\"}"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          "additionalFields": {}
-        },
-        "type": "n8n-nodes-base.telegram",
-        "typeVersion": 1.2,
-        "position": [
-          608,
-          -576
-        ],
-        "id": "56564abd-2002-4fc3-8466-ef0923f31d80",
-        "name": "Ask Platform",
-        "webhookId": "b9d3d4fe-af6c-47d3-85bc-2868b6c0f097",
-        "credentials": {
-          "telegramApi": {
-            "id": "0x6YfcdWFvx71vgi",
-            "name": "Telegram account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "21fc2b2d-3ad6-47b2-830d-16d95cf655e1",
-                      "leftValue": "={{ $json.pending_edit }}",
-                      "rightValue": "1",
-                      "operator": {
-                        "type": "boolean",
-                        "operation": "true",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ ($json.text || '').trim().toLowerCase() }}",
-                      "rightValue": "/post",
-                      "operator": {
-                        "type": "string",
-                        "operation": "equals"
-                      },
-                      "id": "e0cff0cb-aae6-4627-aa3f-9396571dc766"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          384,
-          -672
-        ],
-        "id": "64ce2646-bfde-40d6-b084-bc5cc101f0b3",
-        "name": "Message Router"
-      },
-      {
-        "parameters": {},
-        "type": "n8n-nodes-base.merge",
-        "typeVersion": 3.2,
-        "position": [
-          160,
-          -672
-        ],
-        "id": "4cad9530-e0c5-4767-8c6e-476543a946e6",
-        "name": "Merge Event+State"
-      },
-      {
-        "parameters": {
-          "assignments": {
-            "assignments": [
-              {
-                "id": "f7590b35-3345-4556-8282-f8ac4769785b",
-                "name": "pending_edit",
-                "value": "={{ $json.pending_step !== 'idle' }}",
-                "type": "boolean"
-              },
-              {
-                "id": "0f16cd79-9a98-46a2-9fc3-01d5add40006",
-                "name": "pending_edit_target",
-                "value": "={{ $json.pending_target ?? '' }}",
-                "type": "string"
-              },
-              {
-                "id": "31c560c3-8f7a-4fde-815a-8d8db663115e",
-                "name": "pending_source_message_id",
-                "value": "={{ $json.pending_source_message_id ?? '' }}",
-                "type": "string"
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.set",
-        "typeVersion": 3.4,
-        "position": [
-          -64,
-          -672
-        ],
-        "id": "68630df5-a222-44b2-9e71-d89a62d1dc75",
-        "name": "Map Edit Flags",
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "HkvrktjanMJbfj6w",
-            "mode": "list",
-            "cachedResultName": "telegram_pending_edit",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/HkvrktjanMJbfj6w"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "pending_prompt_message_id",
-                "keyValue": "={{ $json.reply_to_message_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          -288,
-          -672
-        ],
-        "id": "d163c2b9-f2e3-4e91-b11f-311d80e71a44",
-        "name": "Load Edit State",
-        "alwaysOutputData": true
       }
     ],
     "connections": {
@@ -6161,7 +5942,7 @@
         "main": [
           [
             {
-              "node": "Event Router",
+              "node": "Generate Flow Instance",
               "type": "main",
               "index": 0
             }
@@ -6190,7 +5971,7 @@
         "main": [
           [
             {
-              "node": "Callback Router",
+              "node": "Validate Callback",
               "type": "main",
               "index": 0
             }
@@ -6398,22 +6179,80 @@
           ]
         ]
       },
-      "Show Preview": {
+      "Load Edit State": {
         "main": [
           [
             {
-              "node": "Clear Edit State",
+              "node": "Map Edit Flags",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Run Post Edit": {
+      "Map Edit Flags": {
         "main": [
           [
             {
-              "node": "Show Preview",
+              "node": "Merge Event+State",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Event+State": {
+        "main": [
+          [
+            {
+              "node": "Message Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Message Router": {
+        "main": [
+          [
+            {
+              "node": "Pending Action Router",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ask Platform",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pending Action Router": {
+        "main": [
+          [
+            {
+              "node": "Notify Regen",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Post Edit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Notify Regen": {
+        "main": [
+          [
+            {
+              "node": "Run Image Edit",
               "type": "main",
               "index": 0
             }
@@ -6442,80 +6281,44 @@
           ]
         ]
       },
-      "Notify Regen": {
+      "Run Post Edit": {
         "main": [
           [
             {
-              "node": "Run Image Edit",
+              "node": "Show Preview",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Pending Action Router": {
+      "Show Preview": {
         "main": [
           [
             {
-              "node": "Notify Regen",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Notify Post Edit",
+              "node": "Clear Edit State",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Message Router": {
+      "Generate Flow Instance": {
         "main": [
           [
             {
-              "node": "Pending Action Router",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Ask Platform",
+              "node": "Event Router",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Merge Event+State": {
+      "Validate Callback": {
         "main": [
           [
             {
-              "node": "Message Router",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Map Edit Flags": {
-        "main": [
-          [
-            {
-              "node": "Merge Event+State",
-              "type": "main",
-              "index": 1
-            }
-          ]
-        ]
-      },
-      "Load Edit State": {
-        "main": [
-          [
-            {
-              "node": "Map Edit Flags",
+              "node": "Callback Router",
               "type": "main",
               "index": 0
             }
@@ -6524,8 +6327,8 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 9f4be0cd",
-    "description": "",
+    "name": null,
+    "description": null,
     "autosaved": false
   },
   "tags": []
