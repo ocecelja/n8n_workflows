@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T18:11:09.810Z",
+  "updatedAt": "2026-02-04T18:15:03.484Z",
   "createdAt": "2026-01-15T08:28:03.323Z",
   "id": "CQMOekrQxamRkw0P",
   "name": "LinkedIn Post Preview by Telegram",
@@ -11,9 +11,6 @@
         "workflowInputs": {
           "values": [
             {
-              "name": "message_id"
-            },
-            {
               "name": "content_id"
             }
           ]
@@ -23,7 +20,7 @@
       "typeVersion": 1.1,
       "position": [
         -96,
-        16
+        64
       ],
       "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
       "name": "Inbound Preview Req"
@@ -86,7 +83,7 @@
       "typeVersion": 3.4,
       "position": [
         128,
-        16
+        -32
       ],
       "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
       "name": "Pick Lookup Key"
@@ -114,7 +111,7 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        352,
+        800,
         -80
       ],
       "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
@@ -144,7 +141,7 @@
       "typeVersion": 1.1,
       "position": [
         352,
-        112
+        160
       ],
       "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
       "name": "Load By ContentId"
@@ -174,8 +171,8 @@
       "name": "Fetch Draft Image",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        576,
-        16
+        1024,
+        64
       ],
       "retryOnFail": true,
       "typeVersion": 4.2,
@@ -192,8 +189,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        800,
-        16
+        1248,
+        64
       ],
       "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
       "name": "TG Send Photo",
@@ -215,8 +212,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1024,
-        16
+        1472,
+        64
       ],
       "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
       "name": "Build Preview Text"
@@ -259,8 +256,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1248,
-        16
+        1696,
+        64
       ],
       "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
       "name": "TG Send Actions",
@@ -329,8 +326,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1472,
-        16
+        1920,
+        -8
       ],
       "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
       "name": "Pick Update Key"
@@ -469,50 +466,27 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1696,
-        -80
+        2144,
+        -56
       ],
       "id": "1f10296e-3397-4265-96de-07c17986279c",
       "name": "Save New MsgId"
     },
     {
       "parameters": {
-        "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
-              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
-            }
-          ]
+          "mode": "name",
+          "value": "post_drafts"
         },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {
-            "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
-          },
+          "value": {},
           "matchingColumns": [],
           "schema": [
             {
-              "id": "content_id",
-              "displayName": "content_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "message_id",
-              "displayName": "message_id",
+              "id": "draft_id",
+              "displayName": "draft_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -521,12 +495,62 @@
               "removed": false
             },
             {
-              "id": "is_message_pending",
-              "displayName": "is_message_pending",
+              "id": "session_id",
+              "displayName": "session_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "boolean",
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "narrative",
+              "displayName": "narrative",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
               "readOnly": false,
               "removed": false
             },
@@ -538,37 +562,7 @@
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "width",
-              "displayName": "width",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "post_content",
-              "displayName": "post_content",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "image_description",
-              "displayName": "image_description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
               "id": "image_url",
@@ -578,17 +572,7 @@
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "height",
-              "displayName": "height",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
               "id": "created_at",
@@ -598,7 +582,17 @@
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -609,11 +603,54 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1696,
-        112
+        2144,
+        160
       ],
       "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-      "name": "Save New MsgId 2"
+      "name": "Save Message ID to Draft"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "post_drafts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "load-post-draft-node",
+      "name": "Load Post Draft",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-draft-data-node",
+      "name": "Merge Draft Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        160
+      ]
     }
   ],
   "connections": {
@@ -622,6 +659,16 @@
         [
           {
             "node": "Pick Lookup Key",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load By ContentId",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Post Draft",
             "type": "main",
             "index": 0
           }
@@ -661,7 +708,7 @@
       "main": [
         [
           {
-            "node": "Fetch Draft Image",
+            "node": "Merge Draft Data",
             "type": "main",
             "index": 0
           }
@@ -708,6 +755,11 @@
             "node": "Pick Update Key",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Save Message ID to Draft",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -723,7 +775,29 @@
         ],
         [
           {
-            "node": "Save New MsgId 2",
+            "node": "Save Message ID to Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Post Draft": {
+      "main": [
+        [
+          {
+            "node": "Merge Draft Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Draft Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch Draft Image",
             "type": "main",
             "index": 0
           }
@@ -733,7 +807,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
   "meta": null,
@@ -750,8 +825,8 @@
       }
     ]
   },
-  "versionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
-  "activeVersionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
+  "versionId": "28f434e3-2de6-4e19-8884-dfd5db28cab4",
+  "activeVersionId": "48aa6fc7-4d9e-450b-8b70-7c9be0df65f3",
   "triggerCount": 0,
   "shared": [
     {
@@ -763,18 +838,15 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-27T18:11:12.000Z",
-    "createdAt": "2026-01-27T18:11:09.811Z",
-    "versionId": "a2b68460-26e0-4e80-a237-f7a305d42068",
+    "updatedAt": "2026-02-04T18:08:18.419Z",
+    "createdAt": "2026-02-04T18:08:18.419Z",
+    "versionId": "48aa6fc7-4d9e-450b-8b70-7c9be0df65f3",
     "workflowId": "CQMOekrQxamRkw0P",
     "nodes": [
       {
         "parameters": {
           "workflowInputs": {
             "values": [
-              {
-                "name": "message_id"
-              },
               {
                 "name": "content_id"
               }
@@ -1239,18 +1311,15 @@
       },
       {
         "parameters": {
-          "operation": "update",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "content_id",
+                "keyName": "draft_id",
                 "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
               }
             ]
@@ -1258,115 +1327,10 @@
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
-              "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "content_id",
-                "displayName": "content_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "is_message_pending",
-                "displayName": "is_message_pending",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "boolean",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "hashtags",
-                "displayName": "hashtags",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "width",
-                "displayName": "width",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "post_content",
-                "displayName": "post_content",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "image_description",
-                "displayName": "image_description",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "image_url",
-                "displayName": "image_url",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "height",
-                "displayName": "height",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "created_at",
-                "displayName": "created_at",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
-          },
-          "options": {}
+              "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}",
+              "updated_at": "={{ new Date().toISOString() }}"
+            }
+          }
         },
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
@@ -1375,7 +1339,51 @@
           112
         ],
         "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-        "name": "Save New MsgId 2"
+        "name": "Save Message ID to Draft"
+      },
+      {
+        "id": "load-post-draft-node",
+        "name": "Load Post Draft",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          576,
+          -80
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "post_drafts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
+              }
+            ]
+          },
+          "returnAll": false,
+          "limit": 1
+        }
+      },
+      {
+        "id": "merge-draft-data-node",
+        "name": "Merge Draft Data",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          800,
+          16
+        ],
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "options": {}
+        }
       }
     ],
     "connections": {
@@ -1384,6 +1392,11 @@
           [
             {
               "node": "Pick Lookup Key",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Load By ContentId",
               "type": "main",
               "index": 0
             }
@@ -1423,7 +1436,12 @@
         "main": [
           [
             {
-              "node": "Fetch Draft Image",
+              "node": "Load Post Draft",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge Draft Data",
               "type": "main",
               "index": 0
             }
@@ -1470,6 +1488,11 @@
               "node": "Pick Update Key",
               "type": "main",
               "index": 0
+            },
+            {
+              "node": "Save Message ID to Draft",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -1485,7 +1508,29 @@
           ],
           [
             {
-              "node": "Save New MsgId 2",
+              "node": "Save Message ID to Draft",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Post Draft": {
+        "main": [
+          [
+            {
+              "node": "Merge Draft Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Draft Data": {
+        "main": [
+          [
+            {
+              "node": "Fetch Draft Image",
               "type": "main",
               "index": 0
             }
@@ -1494,8 +1539,8 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version a2b68460",
-    "description": "",
+    "name": null,
+    "description": null,
     "autosaved": false
   },
   "tags": []
