@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T18:13:06.786Z",
+  "updatedAt": "2026-02-04T19:17:57.528Z",
   "createdAt": "2026-01-14T18:31:16.968Z",
   "id": "uV2nYAKK2etP3V8M",
   "name": "Generate LinkedIn Image",
@@ -26,131 +26,37 @@
       "typeVersion": 1.1,
       "position": [
         -576,
-        240
+        160
       ],
       "id": "519cd05d-43da-414f-a3ad-91919752c3e3",
       "name": "Inbound Image Req"
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -384,
-        240
-      ],
-      "id": "b59f5133-220f-4788-9b7a-4b8afbfeca83",
-      "name": "Pick Draft Key"
-    },
-    {
-      "parameters": {
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          "mode": "name",
+          "value": "post_drafts"
         },
         "filters": {
           "conditions": [
             {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Image Req').item.json.content_id }}"
             }
           ]
         },
-        "returnAll": true
+        "limit": 1
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -144,
+        -352,
         160
       ],
       "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
-      "name": "Load By MsgId"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
-              "keyValue": "={{ $json.content_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        -144,
-        352
-      ],
-      "id": "6ba19fed-58e3-4b9f-8216-86068b5b56a1",
-      "name": "Load By ContentId"
+      "name": "Load Draft Data"
     },
     {
       "parameters": {
@@ -168,8 +74,8 @@
       "name": "LLM Nano Banana",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "position": [
-        64,
-        416
+        -144,
+        368
       ],
       "typeVersion": 1.2,
       "credentials": {
@@ -190,8 +96,8 @@
       "name": "Build Image Prompt",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "position": [
-        64,
-        240
+        -128,
+        160
       ],
       "typeVersion": 1.7,
       "alwaysOutputData": true
@@ -213,8 +119,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        368,
-        240
+        224,
+        160
       ],
       "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
       "name": "Normalize LLM Out",
@@ -228,8 +134,8 @@
       "name": "Extract Prompt+URL",
       "type": "n8n-nodes-base.code",
       "position": [
-        544,
-        240
+        448,
+        160
       ],
       "executeOnce": false,
       "typeVersion": 2,
@@ -237,203 +143,16 @@
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        704,
-        240
-      ],
-      "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
-      "name": "Pick Update Key",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          "mode": "name",
+          "value": "post_drafts"
         },
         "filters": {
           "conditions": [
             {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "image_url": "={{ $json.extracted_image_url }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "content_id",
-              "displayName": "content_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "approval_id",
-              "displayName": "approval_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "message_id",
-              "displayName": "message_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "hashtags",
-              "displayName": "hashtags",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "post_content",
-              "displayName": "post_content",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "image_description",
-              "displayName": "image_description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "image_url",
-              "displayName": "image_url",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        944,
-        160
-      ],
-      "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
-      "name": "Save Image URL",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
+              "keyName": "draft_id",
               "keyValue": "={{ $json.content_id }}"
             }
           ]
@@ -446,44 +165,64 @@
           "matchingColumns": [],
           "schema": [
             {
-              "id": "content_id",
-              "displayName": "content_id",
+              "id": "draft_id",
+              "displayName": "draft_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
-              "id": "approval_id",
-              "displayName": "approval_id",
+              "id": "session_id",
+              "displayName": "session_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
-              "id": "message_id",
-              "displayName": "message_id",
+              "id": "user_id",
+              "displayName": "user_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
-              "id": "hashtags",
-              "displayName": "hashtags",
+              "id": "platform",
+              "displayName": "platform",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "narrative",
+              "displayName": "narrative",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
             },
             {
               "id": "post_content",
@@ -493,17 +232,17 @@
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
-              "id": "image_description",
-              "displayName": "image_description",
+              "id": "hashtags",
+              "displayName": "hashtags",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
             },
             {
               "id": "image_url",
@@ -523,7 +262,47 @@
               "display": true,
               "type": "string",
               "readOnly": false,
-              "removed": true
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "image_description",
+              "displayName": "image_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -534,11 +313,11 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        944,
-        352
+        672,
+        160
       ],
-      "id": "fcbf05d2-af38-4330-8829-798e2597a819",
-      "name": "Save Image URL 2",
+      "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
+      "name": "Save Image URL",
       "alwaysOutputData": true
     }
   ],
@@ -547,43 +326,14 @@
       "main": [
         [
           {
-            "node": "Pick Draft Key",
+            "node": "Load Draft Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pick Draft Key": {
-      "main": [
-        [
-          {
-            "node": "Load By MsgId",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Load By ContentId",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load By MsgId": {
-      "main": [
-        [
-          {
-            "node": "Build Image Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load By ContentId": {
+    "Load Draft Data": {
       "main": [
         [
           {
@@ -631,25 +381,7 @@
       "main": [
         [
           {
-            "node": "Pick Update Key",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pick Update Key": {
-      "main": [
-        [
-          {
             "node": "Save Image URL",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Save Image URL 2",
             "type": "main",
             "index": 0
           }
@@ -664,7 +396,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
   "meta": null,
@@ -672,7 +405,6 @@
     "Inbound Image Req": [
       {
         "json": {
-          "content_id": "1335",
           "message_id": null,
           "user_edit": null
         },
@@ -682,8 +414,8 @@
       }
     ]
   },
-  "versionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
-  "activeVersionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
+  "versionId": "558ff34c-03a8-4078-b37a-3d97268a926c",
+  "activeVersionId": "558ff34c-03a8-4078-b37a-3d97268a926c",
   "triggerCount": 0,
   "shared": [
     {
@@ -695,9 +427,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-27T18:13:09.000Z",
-    "createdAt": "2026-01-27T18:13:06.787Z",
-    "versionId": "da0ab86e-956d-450f-9b95-58c9b3e70828",
+    "updatedAt": "2026-02-04T18:58:42.000Z",
+    "createdAt": "2026-02-04T18:51:42.675Z",
+    "versionId": "558ff34c-03a8-4078-b37a-3d97268a926c",
     "workflowId": "uV2nYAKK2etP3V8M",
     "nodes": [
       {
@@ -720,131 +452,37 @@
         "typeVersion": 1.1,
         "position": [
           -576,
-          240
+          160
         ],
         "id": "519cd05d-43da-414f-a3ad-91919752c3e3",
         "name": "Inbound Image Req"
       },
       {
         "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          -384,
-          240
-        ],
-        "id": "b59f5133-220f-4788-9b7a-4b8afbfeca83",
-        "name": "Pick Draft Key"
-      },
-      {
-        "parameters": {
           "operation": "get",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Image Req').item.json.content_id }}"
               }
             ]
           },
-          "returnAll": true
+          "limit": 1
         },
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          -144,
+          -352,
           160
         ],
         "id": "d564d18a-c6b2-4180-b1a4-08b838c87a1c",
-        "name": "Load By MsgId"
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "content_id",
-                "keyValue": "={{ $json.content_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          -144,
-          352
-        ],
-        "id": "6ba19fed-58e3-4b9f-8216-86068b5b56a1",
-        "name": "Load By ContentId"
+        "name": "Load Draft Data"
       },
       {
         "parameters": {
@@ -862,8 +500,8 @@
         "name": "LLM Nano Banana",
         "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
         "position": [
-          64,
-          416
+          -144,
+          368
         ],
         "typeVersion": 1.2,
         "credentials": {
@@ -884,8 +522,8 @@
         "name": "Build Image Prompt",
         "type": "@n8n/n8n-nodes-langchain.chainLlm",
         "position": [
-          64,
-          240
+          -128,
+          160
         ],
         "typeVersion": 1.7,
         "alwaysOutputData": true
@@ -907,8 +545,8 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          368,
-          240
+          224,
+          160
         ],
         "id": "b2b9b3d3-afcf-4c48-b08c-b3aeef7eb1d9",
         "name": "Normalize LLM Out",
@@ -922,8 +560,8 @@
         "name": "Extract Prompt+URL",
         "type": "n8n-nodes-base.code",
         "position": [
-          544,
-          240
+          448,
+          160
         ],
         "executeOnce": false,
         "typeVersion": 2,
@@ -931,203 +569,16 @@
       },
       {
         "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "exists",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "exists",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          704,
-          240
-        ],
-        "id": "f361a0da-e9c9-4f6c-9bda-99f1f48f9b83",
-        "name": "Pick Update Key",
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
           "operation": "update",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
-              }
-            ]
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "image_url": "={{ $json.extracted_image_url }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "content_id",
-                "displayName": "content_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "approval_id",
-                "displayName": "approval_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "message_id",
-                "displayName": "message_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "hashtags",
-                "displayName": "hashtags",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "post_content",
-                "displayName": "post_content",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "image_description",
-                "displayName": "image_description",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "image_url",
-                "displayName": "image_url",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "created_at",
-                "displayName": "created_at",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          944,
-          160
-        ],
-        "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
-        "name": "Save Image URL",
-        "alwaysOutputData": true
-      },
-      {
-        "parameters": {
-          "operation": "update",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "content_id",
+                "keyName": "draft_id",
                 "keyValue": "={{ $json.content_id }}"
               }
             ]
@@ -1140,44 +591,64 @@
             "matchingColumns": [],
             "schema": [
               {
-                "id": "content_id",
-                "displayName": "content_id",
+                "id": "draft_id",
+                "displayName": "draft_id",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               },
               {
-                "id": "approval_id",
-                "displayName": "approval_id",
+                "id": "session_id",
+                "displayName": "session_id",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               },
               {
-                "id": "message_id",
-                "displayName": "message_id",
+                "id": "user_id",
+                "displayName": "user_id",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               },
               {
-                "id": "hashtags",
-                "displayName": "hashtags",
+                "id": "platform",
+                "displayName": "platform",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
+              },
+              {
+                "id": "topic",
+                "displayName": "topic",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "narrative",
+                "displayName": "narrative",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
               },
               {
                 "id": "post_content",
@@ -1187,17 +658,17 @@
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               },
               {
-                "id": "image_description",
-                "displayName": "image_description",
+                "id": "hashtags",
+                "displayName": "hashtags",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               },
               {
                 "id": "image_url",
@@ -1217,7 +688,47 @@
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "image_description",
+                "displayName": "image_description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "width",
+                "displayName": "width",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "height",
+                "displayName": "height",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
               }
             ],
             "attemptToConvertTypes": false,
@@ -1228,11 +739,11 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          944,
-          352
+          672,
+          160
         ],
-        "id": "fcbf05d2-af38-4330-8829-798e2597a819",
-        "name": "Save Image URL 2",
+        "id": "6c7e246f-dbd8-4eb5-b721-c91e7791341a",
+        "name": "Save Image URL",
         "alwaysOutputData": true
       }
     ],
@@ -1241,43 +752,14 @@
         "main": [
           [
             {
-              "node": "Pick Draft Key",
+              "node": "Load Draft Data",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Pick Draft Key": {
-        "main": [
-          [
-            {
-              "node": "Load By MsgId",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Load By ContentId",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load By MsgId": {
-        "main": [
-          [
-            {
-              "node": "Build Image Prompt",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load By ContentId": {
+      "Load Draft Data": {
         "main": [
           [
             {
@@ -1325,25 +807,7 @@
         "main": [
           [
             {
-              "node": "Pick Update Key",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Pick Update Key": {
-        "main": [
-          [
-            {
               "node": "Save Image URL",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Save Image URL 2",
               "type": "main",
               "index": 0
             }
@@ -1357,9 +821,9 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version da0ab86e",
+    "name": "Version 558ff34c",
     "description": "",
-    "autosaved": false
+    "autosaved": true
   },
   "tags": []
 }
