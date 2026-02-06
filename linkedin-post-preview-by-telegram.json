@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-04T18:15:03.484Z",
+  "updatedAt": "2026-02-05T20:26:34.561Z",
   "createdAt": "2026-01-15T08:28:03.323Z",
   "id": "CQMOekrQxamRkw0P",
   "name": "LinkedIn Post Preview by Telegram",
@@ -20,131 +20,37 @@
       "typeVersion": 1.1,
       "position": [
         -96,
-        64
+        16
       ],
       "id": "797152e5-0b04-4268-b9a0-937ca7b9b162",
       "name": "Inbound Preview Req"
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "post_drafts"
+        },
+        "filters": {
+          "conditions": [
             {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
             }
           ]
         },
-        "options": {}
+        "limit": 1
       },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         128,
-        -32
-      ],
-      "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
-      "name": "Pick Lookup Key"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        800,
-        -80
-      ],
-      "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
-      "name": "Load By MsgId"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "content_id",
-              "keyValue": "={{ $json.content_id }}"
-            }
-          ]
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        352,
-        160
+        16
       ],
       "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
-      "name": "Load By ContentId"
+      "name": "Load Draft"
     },
     {
       "parameters": {
@@ -171,8 +77,8 @@
       "name": "Fetch Draft Image",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1024,
-        64
+        352,
+        16
       ],
       "retryOnFail": true,
       "typeVersion": 4.2,
@@ -182,15 +88,15 @@
     {
       "parameters": {
         "operation": "sendPhoto",
-        "chatId": "7010291974",
+        "chatId": "={{ $json.user_id }}",
         "binaryData": true,
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1248,
-        64
+        576,
+        16
       ],
       "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
       "name": "TG Send Photo",
@@ -205,23 +111,31 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"post_content\": \"{{ $('Fetch Draft Image').item.json.post_content + '\\n\\n' + $('Fetch Draft Image').item.json.hashtags }}\"\n}\n\n",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "post_content",
+              "name": "post_content",
+              "value": "={{ ($('Load Draft').item.json.post_content + '\\n\\n' + $('Load Draft').item.json.hashtags).replace(/_/g, '\\\\_') }}",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1472,
-        64
+        800,
+        16
       ],
       "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
       "name": "Build Preview Text"
     },
     {
       "parameters": {
-        "chatId": "7010291974",
-        "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}\n",
+        "chatId": "={{ $('Load Draft').item.json.user_id }}",
+        "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}",
         "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": {
           "rows": [
@@ -256,8 +170,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1696,
-        64
+        1024,
+        16
       ],
       "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
       "name": "TG Send Actions",
@@ -271,95 +185,51 @@
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('Inbound Preview Req').item.json.message_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                    "leftValue": "={{ $('Inbound Preview Req').item.json.content_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        1920,
-        -8
-      ],
-      "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
-      "name": "Pick Update Key"
-    },
-    {
-      "parameters": {
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          "mode": "name",
+          "value": "post_drafts"
         },
         "filters": {
           "conditions": [
             {
-              "keyName": "message_id",
-              "keyValue": "={{ $('Inbound Preview Req').item.json.message_id }}"
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
+            "updated_at": "={{ new Date().toISOString() }}",
             "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
           },
           "matchingColumns": [],
           "schema": [
             {
-              "id": "content_id",
-              "displayName": "content_id",
+              "id": "draft_id",
+              "displayName": "draft_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -378,14 +248,44 @@
               "removed": false
             },
             {
-              "id": "is_message_pending",
-              "displayName": "is_message_pending",
+              "id": "platform",
+              "displayName": "platform",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "boolean",
+              "type": "string",
               "readOnly": false,
-              "removed": false
+              "removed": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "narrative",
+              "displayName": "narrative",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
             },
             {
               "id": "hashtags",
@@ -398,8 +298,8 @@
               "removed": true
             },
             {
-              "id": "width",
-              "displayName": "width",
+              "id": "image_url",
+              "displayName": "image_url",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -408,8 +308,18 @@
               "removed": true
             },
             {
-              "id": "post_content",
-              "displayName": "post_content",
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -428,8 +338,8 @@
               "removed": true
             },
             {
-              "id": "image_url",
-              "displayName": "image_url",
+              "id": "width",
+              "displayName": "width",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -448,145 +358,8 @@
               "removed": true
             },
             {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        2144,
-        -56
-      ],
-      "id": "1f10296e-3397-4265-96de-07c17986279c",
-      "name": "Save New MsgId"
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "mode": "name",
-          "value": "post_drafts"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "draft_id",
-              "displayName": "draft_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "session_id",
-              "displayName": "session_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "platform",
-              "displayName": "platform",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "topic",
-              "displayName": "topic",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "narrative",
-              "displayName": "narrative",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "post_content",
-              "displayName": "post_content",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "hashtags",
-              "displayName": "hashtags",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "image_url",
-              "displayName": "image_url",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
+              "id": "updated_at",
+              "displayName": "updated_at",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -603,54 +376,11 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2144,
-        160
+        1248,
+        16
       ],
       "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-      "name": "Save Message ID to Draft"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "name",
-          "value": "post_drafts"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "draft_id",
-              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
-            }
-          ]
-        },
-        "limit": 1
-      },
-      "id": "load-post-draft-node",
-      "name": "Load Post Draft",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        368,
-        368
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      },
-      "id": "merge-draft-data-node",
-      "name": "Merge Draft Data",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        800,
-        160
-      ]
+      "name": "Save Message ID"
     }
   ],
   "connections": {
@@ -658,57 +388,18 @@
       "main": [
         [
           {
-            "node": "Pick Lookup Key",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Load By ContentId",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Load Post Draft",
+            "node": "Load Draft",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pick Lookup Key": {
-      "main": [
-        [
-          {
-            "node": "Load By MsgId",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Load By ContentId",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load By MsgId": {
+    "Load Draft": {
       "main": [
         [
           {
             "node": "Fetch Draft Image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load By ContentId": {
-      "main": [
-        [
-          {
-            "node": "Merge Draft Data",
             "type": "main",
             "index": 0
           }
@@ -752,52 +443,7 @@
       "main": [
         [
           {
-            "node": "Pick Update Key",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Save Message ID to Draft",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pick Update Key": {
-      "main": [
-        [
-          {
-            "node": "Save New MsgId",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Save Message ID to Draft",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load Post Draft": {
-      "main": [
-        [
-          {
-            "node": "Merge Draft Data",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Draft Data": {
-      "main": [
-        [
-          {
-            "node": "Fetch Draft Image",
+            "node": "Save Message ID",
             "type": "main",
             "index": 0
           }
@@ -816,8 +462,7 @@
     "Inbound Preview Req": [
       {
         "json": {
-          "message_id": null,
-          "content_id": "1335"
+          "content_id": "2048"
         },
         "pairedItem": {
           "item": 0
@@ -825,8 +470,8 @@
       }
     ]
   },
-  "versionId": "28f434e3-2de6-4e19-8884-dfd5db28cab4",
-  "activeVersionId": "48aa6fc7-4d9e-450b-8b70-7c9be0df65f3",
+  "versionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
+  "activeVersionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
   "triggerCount": 0,
   "shared": [
     {
@@ -838,9 +483,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-02-04T18:08:18.419Z",
-    "createdAt": "2026-02-04T18:08:18.419Z",
-    "versionId": "48aa6fc7-4d9e-450b-8b70-7c9be0df65f3",
+    "updatedAt": "2026-02-05T20:26:39.000Z",
+    "createdAt": "2026-02-05T20:26:34.562Z",
+    "versionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
     "workflowId": "CQMOekrQxamRkw0P",
     "nodes": [
       {
@@ -864,124 +509,30 @@
       },
       {
         "parameters": {
-          "rules": {
-            "values": [
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "post_drafts"
+          },
+          "filters": {
+            "conditions": [
               {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
               }
             ]
           },
-          "options": {}
+          "limit": 1
         },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
         "position": [
           128,
           16
         ],
-        "id": "f7569c2b-7548-4706-9064-5ab0c6e63135",
-        "name": "Pick Lookup Key"
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          352,
-          -80
-        ],
-        "id": "63d030ea-9da0-480c-9443-0c710ba1e103",
-        "name": "Load By MsgId"
-      },
-      {
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "content_id",
-                "keyValue": "={{ $json.content_id }}"
-              }
-            ]
-          },
-          "returnAll": true
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          352,
-          112
-        ],
         "id": "0247d9da-6ff3-4023-bc4d-1600abf55423",
-        "name": "Load By ContentId"
+        "name": "Load Draft"
       },
       {
         "parameters": {
@@ -1008,7 +559,7 @@
         "name": "Fetch Draft Image",
         "type": "n8n-nodes-base.httpRequest",
         "position": [
-          576,
+          352,
           16
         ],
         "retryOnFail": true,
@@ -1019,14 +570,14 @@
       {
         "parameters": {
           "operation": "sendPhoto",
-          "chatId": "7010291974",
+          "chatId": "={{ $json.user_id }}",
           "binaryData": true,
           "additionalFields": {}
         },
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          800,
+          576,
           16
         ],
         "id": "f69b2a5b-d3a3-43ae-af4e-0ec105fb3600",
@@ -1042,14 +593,22 @@
       },
       {
         "parameters": {
-          "mode": "raw",
-          "jsonOutput": "={\n  \"post_content\": \"{{ $('Fetch Draft Image').item.json.post_content + '\\n\\n' + $('Fetch Draft Image').item.json.hashtags }}\"\n}\n\n",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "post_content",
+                "name": "post_content",
+                "value": "={{ ($('Load Draft').item.json.post_content + '\\n\\n' + $('Load Draft').item.json.hashtags).replace(/_/g, '\\\\_') }}",
+                "type": "string"
+              }
+            ]
+          },
           "options": {}
         },
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          1024,
+          800,
           16
         ],
         "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
@@ -1057,8 +616,8 @@
       },
       {
         "parameters": {
-          "chatId": "7010291974",
-          "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}\n",
+          "chatId": "={{ $('Load Draft').item.json.user_id }}",
+          "text": "={{\n\"🧪 LINKEDIN PREVIEW\\n\\n\" +\n\"📝 POST:\\n\" + ($json.post_content ?? \"\") + \"\\n\\n\" +\n\"Choose an action:\"\n}}",
           "replyMarkup": "inlineKeyboard",
           "inlineKeyboard": {
             "rows": [
@@ -1093,7 +652,7 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          1248,
+          1024,
           16
         ],
         "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
@@ -1108,95 +667,51 @@
       },
       {
         "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $('Inbound Preview Req').item.json.message_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      },
-                      "id": "c7200668-42da-4fa2-a780-590b680c8fe7"
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 3
-                  },
-                  "conditions": [
-                    {
-                      "id": "ce34ba1c-cedf-4489-a62f-7553732deba7",
-                      "leftValue": "={{ $('Inbound Preview Req').item.json.content_id }}",
-                      "rightValue": "",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEmpty",
-                        "singleValue": true
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                }
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.4,
-        "position": [
-          1472,
-          16
-        ],
-        "id": "a7db6b03-4b12-44d1-a707-df79a531ad47",
-        "name": "Pick Update Key"
-      },
-      {
-        "parameters": {
           "operation": "update",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "message_id",
-                "keyValue": "={{ $('Inbound Preview Req').item.json.message_id }}"
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
               }
             ]
           },
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
+              "updated_at": "={{ new Date().toISOString() }}",
               "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}"
             },
             "matchingColumns": [],
             "schema": [
               {
-                "id": "content_id",
-                "displayName": "content_id",
+                "id": "draft_id",
+                "displayName": "draft_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "user_id",
+                "displayName": "user_id",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
@@ -1215,18 +730,8 @@
                 "removed": false
               },
               {
-                "id": "is_message_pending",
-                "displayName": "is_message_pending",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "boolean",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "hashtags",
-                "displayName": "hashtags",
+                "id": "platform",
+                "displayName": "platform",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
@@ -1235,8 +740,18 @@
                 "removed": true
               },
               {
-                "id": "width",
-                "displayName": "width",
+                "id": "topic",
+                "displayName": "topic",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "narrative",
+                "displayName": "narrative",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
@@ -1255,8 +770,8 @@
                 "removed": true
               },
               {
-                "id": "image_description",
-                "displayName": "image_description",
+                "id": "hashtags",
+                "displayName": "hashtags",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
@@ -1275,6 +790,46 @@
                 "removed": true
               },
               {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_description",
+                "displayName": "image_description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "width",
+                "displayName": "width",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
                 "id": "height",
                 "displayName": "height",
                 "required": false,
@@ -1285,14 +840,14 @@
                 "removed": true
               },
               {
-                "id": "created_at",
-                "displayName": "created_at",
+                "id": "updated_at",
+                "displayName": "updated_at",
                 "required": false,
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
                 "readOnly": false,
-                "removed": true
+                "removed": false
               }
             ],
             "attemptToConvertTypes": false,
@@ -1303,87 +858,11 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          1696,
-          -80
-        ],
-        "id": "1f10296e-3397-4265-96de-07c17986279c",
-        "name": "Save New MsgId"
-      },
-      {
-        "parameters": {
-          "dataTableId": {
-            "__rl": true,
-            "mode": "name",
-            "value": "post_drafts"
-          },
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "draft_id",
-                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
-              }
-            ]
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "message_id": "={{ $('TG Send Actions').item.json.result.message_id }}",
-              "updated_at": "={{ new Date().toISOString() }}"
-            }
-          }
-        },
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          1696,
-          112
-        ],
-        "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
-        "name": "Save Message ID to Draft"
-      },
-      {
-        "id": "load-post-draft-node",
-        "name": "Load Post Draft",
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          576,
-          -80
-        ],
-        "parameters": {
-          "operation": "get",
-          "dataTableId": {
-            "__rl": true,
-            "mode": "name",
-            "value": "post_drafts"
-          },
-          "matchType": "allConditions",
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "draft_id",
-                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
-              }
-            ]
-          },
-          "returnAll": false,
-          "limit": 1
-        }
-      },
-      {
-        "id": "merge-draft-data-node",
-        "name": "Merge Draft Data",
-        "type": "n8n-nodes-base.merge",
-        "typeVersion": 3.2,
-        "position": [
-          800,
+          1248,
           16
         ],
-        "parameters": {
-          "mode": "combine",
-          "combineBy": "combineByPosition",
-          "options": {}
-        }
+        "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
+        "name": "Save Message ID"
       }
     ],
     "connections": {
@@ -1391,57 +870,18 @@
         "main": [
           [
             {
-              "node": "Pick Lookup Key",
-              "type": "main",
-              "index": 0
-            },
-            {
-              "node": "Load By ContentId",
+              "node": "Load Draft",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Pick Lookup Key": {
-        "main": [
-          [
-            {
-              "node": "Load By MsgId",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Load By ContentId",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load By MsgId": {
+      "Load Draft": {
         "main": [
           [
             {
               "node": "Fetch Draft Image",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load By ContentId": {
-        "main": [
-          [
-            {
-              "node": "Load Post Draft",
-              "type": "main",
-              "index": 0
-            },
-            {
-              "node": "Merge Draft Data",
               "type": "main",
               "index": 0
             }
@@ -1485,52 +925,7 @@
         "main": [
           [
             {
-              "node": "Pick Update Key",
-              "type": "main",
-              "index": 0
-            },
-            {
-              "node": "Save Message ID to Draft",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Pick Update Key": {
-        "main": [
-          [
-            {
-              "node": "Save New MsgId",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Save Message ID to Draft",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Load Post Draft": {
-        "main": [
-          [
-            {
-              "node": "Merge Draft Data",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Merge Draft Data": {
-        "main": [
-          [
-            {
-              "node": "Fetch Draft Image",
+              "node": "Save Message ID",
               "type": "main",
               "index": 0
             }
@@ -1539,9 +934,9 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": null,
-    "description": null,
-    "autosaved": false
+    "name": "Version ae7d4a54",
+    "description": "",
+    "autosaved": true
   },
   "tags": []
 }
