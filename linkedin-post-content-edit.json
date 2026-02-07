@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T18:09:19.438Z",
+  "updatedAt": "2026-02-06T06:26:55.559Z",
   "createdAt": "2026-01-21T17:26:50.468Z",
   "id": "LLQ5sFn2xrQtOOzy",
   "name": "LinkedIn Post Content Edit",
@@ -11,10 +11,10 @@
         "workflowInputs": {
           "values": [
             {
-              "name": "message_id"
+              "name": "content_id"
             },
             {
-              "name": "user_edit"
+              "name": "edit_instruction"
             }
           ]
         }
@@ -33,20 +33,18 @@
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          "mode": "name",
+          "value": "post_drafts"
         },
         "filters": {
           "conditions": [
             {
-              "keyName": "message_id",
-              "keyValue": "={{ $json.message_id }}"
+              "keyName": "draft_id",
+              "keyValue": "={{ $json.content_id }}"
             }
           ]
         },
-        "returnAll": true
+        "limit": 1
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -59,8 +57,7 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+        "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.edit_instruction }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
         "hasOutputParser": true,
         "batching": {}
       },
@@ -126,83 +123,27 @@
     },
     {
       "parameters": {
-        "operation": "upsert",
+        "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "0KR0zM6EHjml9RtV",
-          "mode": "list",
-          "cachedResultName": "linkedin_drafts",
-          "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+          "mode": "name",
+          "value": "post_drafts"
         },
         "filters": {
           "conditions": [
             {
-              "keyName": "message_id",
-              "keyValue": "={{ $('Inbound Edit Req').item.json.message_id }}"
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Edit Req').item.json.content_id }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "created_at": "=={{ $now }}",
-            "post_content": "={{ $json['post content'] }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "approval_id",
-              "displayName": "approval_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "hashtags",
-              "displayName": "hashtags",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "post_content",
-              "displayName": "post_content",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "image_url",
-              "displayName": "image_url",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
+            "post_content": "={{ $json['post content'] }}",
+            "hashtags": "={{ $('Load Draft').first().json.hashtags }}",
+            "updated_at": "={{ new Date().toISOString() }}"
+          }
         },
         "options": {}
       },
@@ -286,7 +227,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
   "meta": null,
@@ -301,8 +243,8 @@
       }
     ]
   },
-  "versionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
-  "activeVersionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
+  "versionId": "06bfbda4-1258-46e5-8ede-ccd7087b16ce",
+  "activeVersionId": "06bfbda4-1258-46e5-8ede-ccd7087b16ce",
   "triggerCount": 0,
   "shared": [
     {
@@ -314,9 +256,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-27T18:09:21.000Z",
-    "createdAt": "2026-01-27T18:09:19.440Z",
-    "versionId": "323e7e31-3796-4062-9bc2-8ec7837e006d",
+    "updatedAt": "2026-02-06T06:32:30.000Z",
+    "createdAt": "2026-02-06T06:26:55.560Z",
+    "versionId": "06bfbda4-1258-46e5-8ede-ccd7087b16ce",
     "workflowId": "LLQ5sFn2xrQtOOzy",
     "nodes": [
       {
@@ -324,10 +266,10 @@
           "workflowInputs": {
             "values": [
               {
-                "name": "message_id"
+                "name": "content_id"
               },
               {
-                "name": "user_edit"
+                "name": "edit_instruction"
               }
             ]
           }
@@ -346,20 +288,18 @@
           "operation": "get",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "message_id",
-                "keyValue": "={{ $json.message_id }}"
+                "keyName": "draft_id",
+                "keyValue": "={{ $json.content_id }}"
               }
             ]
           },
-          "returnAll": true
+          "limit": 1
         },
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
@@ -372,8 +312,7 @@
       },
       {
         "parameters": {
-          "promptType": "define",
-          "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.user_edit }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
+          "text": "=You are a LinkedIn content editor (NOT creator) and copywriter.\n\nRewrite a LinkedIn post:\n{{ $json.post_content }}\n\nBy following users edit instructions:\n{{ $('Inbound Edit Req').item.json.edit_instruction }}\n\nKeep existing fixed structure.\nDo NOT label the sections explicitly (no headings like \"Intro\" or \"Rationale\"),\nbut each section MUST be clearly separated by a new paragraph.\n\nSTRUCTURE TO FOLLOW (IN ORDER):\n\n1) Topic / Title idea  \n- One short, punchy sentence.\n- Can be provocative or insight-driven.\n- This is the first line of the post.\n\n2) What happened (use case / symptom)  \n- Describe a concrete real-world situation.\n- Focus on how the problem manifested.\n- Make it feel like a production or testing incident.\n\n3) Why it happened (root cause / rationale)  \n- Explain the technical cause.\n- Connect symptoms to underlying system behavior.\n- Avoid solutions in this section.\n\n4) Resolution and prevention  \n- Describe fixes, mitigations, or design lessons.\n- End with a strong takeaway relevant to senior engineers.\n\nSTYLE RULES:\n- Write as one coherent post, not bullet points.\n- Start directly with the first sentence (no preamble).\n- Do NOT use prefixes like \"Hook:\".\n- Keep it concise, technical, and authoritative.\n- Audience: senior embedded engineers, tech leads, reviewers.\n\nCreate STRICT JSON only (no markdown, no commentary, no extra keys).\nOutput must be valid JSON.\n\nRules:\n- topic: 1 punchy sentence; no cause, no solution.\n- what_happened: describe the real-world symptom + context; no root cause, no fixes.\n- why_it_happened: technical root cause; no fixes.\n- solution_and_takeaway: fixes + prevention + final takeaway; do not introduce new symptoms.\n- image_description: Describe a single, realistic image that visually supports the topic; Focus on the core technical concept or system context; Do not include stylistic instructions for rendering; Be detailed so that image model can reiably generate image related with topic.",
           "hasOutputParser": true,
           "batching": {}
         },
@@ -439,83 +378,27 @@
       },
       {
         "parameters": {
-          "operation": "upsert",
+          "operation": "update",
           "dataTableId": {
             "__rl": true,
-            "value": "0KR0zM6EHjml9RtV",
-            "mode": "list",
-            "cachedResultName": "linkedin_drafts",
-            "cachedResultUrl": "/projects/9yX4R0cKO1fKLrIT/datatables/0KR0zM6EHjml9RtV"
+            "mode": "name",
+            "value": "post_drafts"
           },
           "filters": {
             "conditions": [
               {
-                "keyName": "message_id",
-                "keyValue": "={{ $('Inbound Edit Req').item.json.message_id }}"
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Edit Req').item.json.content_id }}"
               }
             ]
           },
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
-              "created_at": "=={{ $now }}",
-              "post_content": "={{ $json['post content'] }}"
-            },
-            "matchingColumns": [],
-            "schema": [
-              {
-                "id": "approval_id",
-                "displayName": "approval_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "hashtags",
-                "displayName": "hashtags",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "post_content",
-                "displayName": "post_content",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "image_url",
-                "displayName": "image_url",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "created_at",
-                "displayName": "created_at",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
+              "post_content": "={{ $json['post content'] }}",
+              "hashtags": "={{ $('Load Draft').first().json.hashtags }}",
+              "updated_at": "={{ new Date().toISOString() }}"
+            }
           },
           "options": {}
         },
@@ -598,9 +481,9 @@
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version 323e7e31",
+    "name": "Version 06bfbda4",
     "description": "",
-    "autosaved": false
+    "autosaved": true
   },
   "tags": []
 }
