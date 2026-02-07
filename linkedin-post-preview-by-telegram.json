@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-05T20:26:34.561Z",
+  "updatedAt": "2026-02-06T09:43:06.746Z",
   "createdAt": "2026-01-15T08:28:03.323Z",
   "id": "CQMOekrQxamRkw0P",
   "name": "LinkedIn Post Preview by Telegram",
@@ -88,7 +88,7 @@
     {
       "parameters": {
         "operation": "sendPhoto",
-        "chatId": "={{ $json.user_id }}",
+        "chatId": "={{ $('Load Draft').item.json.user_id }}",
         "binaryData": true,
         "additionalFields": {}
       },
@@ -126,7 +126,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        800,
+        1024,
         16
       ],
       "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
@@ -145,19 +145,19 @@
                   {
                     "text": "✅ Approve",
                     "additionalFields": {
-                      "callback_data": "={\"type\":\"decision\",\"value\":\"APPROVE\"}"
+                      "callback_data": "={\"type\":\"APPROVE\"}"
                     }
                   },
                   {
-                    "text": "🔄 Re-generate",
+                    "text": "🔄 Re-do Image",
                     "additionalFields": {
-                      "callback_data": "={\"type\":\"decision\",\"value\":\"REGEN\"}"
+                      "callback_data": "={\"type\":\"REGEN\"}"
                     }
                   },
                   {
-                    "text": "✏️ Edit",
+                    "text": "✏️ Edit Post",
                     "additionalFields": {
-                      "callback_data": "{\"type\":\"decision\",\"value\":\"EDIT\"}"
+                      "callback_data": "{\"type\":\"EDIT\"}"
                     }
                   }
                 ]
@@ -170,7 +170,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1024,
+        1248,
         16
       ],
       "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
@@ -376,11 +376,240 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1248,
+        1472,
         16
       ],
       "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
       "name": "Save Message ID"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "post_drafts"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "draft_id",
+              "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "updated_at": "={{ new Date().toISOString() }}",
+            "photo_message_id": "={{ $('TG Send Photo').item.json.result.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "draft_id",
+              "displayName": "draft_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "photo_message_id",
+              "displayName": "photo_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "narrative",
+              "displayName": "narrative",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "post_content",
+              "displayName": "post_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "image_description",
+              "displayName": "image_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_post_id",
+              "displayName": "linkedin_post_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "published_at",
+              "displayName": "published_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        16
+      ],
+      "id": "fcd46d6b-1841-4322-88a3-228ec8d2d13b",
+      "name": "Save Photo Msg ID"
     }
   ],
   "connections": {
@@ -421,7 +650,7 @@
       "main": [
         [
           {
-            "node": "Build Preview Text",
+            "node": "Save Photo Msg ID",
             "type": "main",
             "index": 0
           }
@@ -449,6 +678,17 @@
           }
         ]
       ]
+    },
+    "Save Photo Msg ID": {
+      "main": [
+        [
+          {
+            "node": "Build Preview Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -462,7 +702,7 @@
     "Inbound Preview Req": [
       {
         "json": {
-          "content_id": "2048"
+          "content_id": "2156"
         },
         "pairedItem": {
           "item": 0
@@ -470,8 +710,8 @@
       }
     ]
   },
-  "versionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
-  "activeVersionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
+  "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
+  "activeVersionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
   "triggerCount": 0,
   "shared": [
     {
@@ -483,9 +723,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-02-05T20:26:39.000Z",
-    "createdAt": "2026-02-05T20:26:34.562Z",
-    "versionId": "ae7d4a54-84e0-4c50-a939-9bd12e3c7b44",
+    "updatedAt": "2026-02-06T09:43:11.000Z",
+    "createdAt": "2026-02-06T09:43:06.747Z",
+    "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
     "workflowId": "CQMOekrQxamRkw0P",
     "nodes": [
       {
@@ -570,7 +810,7 @@
       {
         "parameters": {
           "operation": "sendPhoto",
-          "chatId": "={{ $json.user_id }}",
+          "chatId": "={{ $('Load Draft').item.json.user_id }}",
           "binaryData": true,
           "additionalFields": {}
         },
@@ -608,7 +848,7 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          800,
+          1024,
           16
         ],
         "id": "5ea184e3-cd55-4653-b559-93f4350111d9",
@@ -627,19 +867,19 @@
                     {
                       "text": "✅ Approve",
                       "additionalFields": {
-                        "callback_data": "={\"type\":\"decision\",\"value\":\"APPROVE\"}"
+                        "callback_data": "={\"type\":\"APPROVE\"}"
                       }
                     },
                     {
-                      "text": "🔄 Re-generate",
+                      "text": "🔄 Re-do Image",
                       "additionalFields": {
-                        "callback_data": "={\"type\":\"decision\",\"value\":\"REGEN\"}"
+                        "callback_data": "={\"type\":\"REGEN\"}"
                       }
                     },
                     {
-                      "text": "✏️ Edit",
+                      "text": "✏️ Edit Post",
                       "additionalFields": {
-                        "callback_data": "{\"type\":\"decision\",\"value\":\"EDIT\"}"
+                        "callback_data": "{\"type\":\"EDIT\"}"
                       }
                     }
                   ]
@@ -652,7 +892,7 @@
         "type": "n8n-nodes-base.telegram",
         "typeVersion": 1.2,
         "position": [
-          1024,
+          1248,
           16
         ],
         "id": "41c430af-6eb9-4155-bda7-2e7ad81dca14",
@@ -858,11 +1098,240 @@
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          1248,
+          1472,
           16
         ],
         "id": "a624f37a-b39b-4964-84d8-ec6287289cb5",
         "name": "Save Message ID"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "post_drafts"
+          },
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "draft_id",
+                "keyValue": "={{ $('Inbound Preview Req').item.json.content_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "updated_at": "={{ new Date().toISOString() }}",
+              "photo_message_id": "={{ $('TG Send Photo').item.json.result.message_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "draft_id",
+                "displayName": "draft_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "user_id",
+                "displayName": "user_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "message_id",
+                "displayName": "message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "photo_message_id",
+                "displayName": "photo_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "platform",
+                "displayName": "platform",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "topic",
+                "displayName": "topic",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "narrative",
+                "displayName": "narrative",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "post_content",
+                "displayName": "post_content",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "hashtags",
+                "displayName": "hashtags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_url",
+                "displayName": "image_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "image_description",
+                "displayName": "image_description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "width",
+                "displayName": "width",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "height",
+                "displayName": "height",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "updated_at",
+                "displayName": "updated_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "linkedin_post_id",
+                "displayName": "linkedin_post_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "published_at",
+                "displayName": "published_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          800,
+          16
+        ],
+        "id": "fcd46d6b-1841-4322-88a3-228ec8d2d13b",
+        "name": "Save Photo Msg ID"
       }
     ],
     "connections": {
@@ -903,7 +1372,7 @@
         "main": [
           [
             {
-              "node": "Build Preview Text",
+              "node": "Save Photo Msg ID",
               "type": "main",
               "index": 0
             }
@@ -931,10 +1400,21 @@
             }
           ]
         ]
+      },
+      "Save Photo Msg ID": {
+        "main": [
+          [
+            {
+              "node": "Build Preview Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "Ozren Cecelja",
-    "name": "Version ae7d4a54",
+    "name": "Version 3f153f43",
     "description": "",
     "autosaved": true
   },
