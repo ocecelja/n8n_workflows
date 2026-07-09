@@ -423,13 +423,19 @@
   },
   "staticData": {
     "node:Schedule Trigger": {
-      "recurrenceRules": []
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
     }
   },
   "meta": {
     "templateId": "4064",
     "templateCredsSetupCompleted": true
   },
+  "nodeGroups": [],
   "pinData": {},
   "versionId": "9c4448f4-2cd8-4724-9d9a-8c7e1863f3e1",
   "activeVersionId": "30d60e4a-10d7-4267-b6dc-e503167a56ea",
