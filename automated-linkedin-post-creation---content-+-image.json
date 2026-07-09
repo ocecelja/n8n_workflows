@@ -844,6 +844,7 @@
     "templateId": "4968",
     "templateCredsSetupCompleted": true
   },
+  "nodeGroups": [],
   "pinData": {
     "Schedule Trigger": [
       {
