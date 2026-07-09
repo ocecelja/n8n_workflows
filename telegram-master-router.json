@@ -3230,6 +3230,7 @@
   "meta": {
     "templateCredsSetupCompleted": true
   },
+  "nodeGroups": [],
   "pinData": {
     "TG Inbound": [
       {
