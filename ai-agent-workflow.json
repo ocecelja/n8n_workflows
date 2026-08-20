@@ -305,6 +305,7 @@
   "versionId": "450e6d15-b945-49a9-9a38-6cd17258aa9c",
   "activeVersionId": null,
   "triggerCount": 0,
+  "tags": [],
   "shared": [
     {
       "updatedAt": "2026-01-02T19:37:53.619Z",
@@ -314,6 +315,5 @@
       "projectId": "9yX4R0cKO1fKLrIT"
     }
   ],
-  "activeVersion": null,
-  "tags": []
+  "activeVersion": null
 }
