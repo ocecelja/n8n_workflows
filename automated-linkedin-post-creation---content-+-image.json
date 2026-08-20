@@ -870,6 +870,7 @@
   "versionId": "98c292c0-2674-4b9e-b723-a9a780ce37f3",
   "activeVersionId": null,
   "triggerCount": 0,
+  "tags": [],
   "shared": [
     {
       "updatedAt": "2026-01-03T18:26:29.185Z",
@@ -879,6 +880,5 @@
       "projectId": "9yX4R0cKO1fKLrIT"
     }
   ],
-  "activeVersion": null,
-  "tags": []
+  "activeVersion": null
 }
