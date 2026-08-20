@@ -714,6 +714,7 @@
   "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
   "activeVersionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
   "triggerCount": 0,
+  "tags": [],
   "shared": [
     {
       "updatedAt": "2026-01-15T08:28:03.330Z",
@@ -1419,6 +1420,5 @@
     "name": "Version 3f153f43",
     "description": "",
     "autosaved": true
-  },
-  "tags": []
+  }
 }
