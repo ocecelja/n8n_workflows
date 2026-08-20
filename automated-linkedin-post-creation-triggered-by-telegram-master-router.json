@@ -461,6 +461,7 @@
   "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
   "activeVersionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
   "triggerCount": 0,
+  "tags": [],
   "shared": [
     {
       "updatedAt": "2026-01-13T13:35:46.221Z",
@@ -902,6 +903,5 @@
     "name": "Version ba929b09",
     "description": "",
     "autosaved": false
-  },
-  "tags": []
+  }
 }
