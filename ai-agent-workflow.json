@@ -1,10 +1,13 @@
 {
-  "updatedAt": "2026-01-11T18:34:17.000Z",
-  "createdAt": "2026-01-02T19:37:53.617Z",
   "id": "hh9nbMCMkbW6w58X",
   "name": "AI Agent workflow",
   "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-01-02T19:37:53.617Z",
+  "updatedAt": "2026-01-11T18:34:17.000Z",
   "isArchived": true,
+  "versionId": "450e6d15-b945-49a9-9a38-6cd17258aa9c",
+  "triggerCount": 0,
   "nodes": [
     {
       "parameters": {
@@ -293,26 +296,23 @@
       ]
     }
   },
+  "nodeGroups": [],
   "settings": {
     "availableInMCP": false
   },
   "staticData": null,
+  "pinData": {},
   "meta": {
     "templateId": "ready-to-run-ai-workflow"
   },
-  "nodeGroups": [],
-  "pinData": {},
-  "versionId": "450e6d15-b945-49a9-9a38-6cd17258aa9c",
-  "activeVersionId": null,
-  "triggerCount": 0,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-01-02T19:37:53.619Z",
-      "createdAt": "2026-01-02T19:37:53.619Z",
       "role": "workflow:owner",
       "workflowId": "hh9nbMCMkbW6w58X",
-      "projectId": "9yX4R0cKO1fKLrIT"
+      "projectId": "9yX4R0cKO1fKLrIT",
+      "createdAt": "2026-01-02T19:37:53.619Z",
+      "updatedAt": "2026-01-02T19:37:53.619Z"
     }
   ],
   "activeVersion": null
