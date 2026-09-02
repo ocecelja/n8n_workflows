@@ -1,10 +1,13 @@
 {
-  "updatedAt": "2026-01-11T18:34:03.000Z",
-  "createdAt": "2026-01-06T10:45:30.724Z",
   "id": "XRgricVvj2EJq7ed",
   "name": "POE API",
   "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-01-06T10:45:30.724Z",
+  "updatedAt": "2026-01-11T18:34:03.000Z",
   "isArchived": true,
+  "versionId": "166a5f50-6347-4b62-b5d8-8254419164b5",
+  "triggerCount": 0,
   "nodes": [
     {
       "parameters": {},
@@ -72,25 +75,22 @@
       ]
     }
   },
+  "nodeGroups": [],
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
   },
   "staticData": null,
-  "meta": null,
-  "nodeGroups": [],
   "pinData": {},
-  "versionId": "166a5f50-6347-4b62-b5d8-8254419164b5",
-  "activeVersionId": null,
-  "triggerCount": 0,
+  "meta": null,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-01-06T10:45:30.726Z",
-      "createdAt": "2026-01-06T10:45:30.726Z",
       "role": "workflow:owner",
       "workflowId": "XRgricVvj2EJq7ed",
-      "projectId": "9yX4R0cKO1fKLrIT"
+      "projectId": "9yX4R0cKO1fKLrIT",
+      "createdAt": "2026-01-06T10:45:30.726Z",
+      "updatedAt": "2026-01-06T10:45:30.726Z"
     }
   ],
   "activeVersion": null
