@@ -1,10 +1,13 @@
 {
-  "updatedAt": "2026-01-11T18:53:48.381Z",
-  "createdAt": "2026-01-03T18:26:29.183Z",
   "id": "M59ziP3Xj91fy8zM",
   "name": "Automated LinkedIn Post Creation - Content + Image",
   "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-01-03T18:26:29.183Z",
+  "updatedAt": "2026-01-11T18:53:48.381Z",
   "isArchived": false,
+  "versionId": "98c292c0-2674-4b9e-b723-a9a780ce37f3",
+  "triggerCount": 0,
   "nodes": [
     {
       "parameters": {
@@ -835,16 +838,12 @@
       ]
     }
   },
+  "nodeGroups": [],
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
   },
   "staticData": null,
-  "meta": {
-    "templateId": "4968",
-    "templateCredsSetupCompleted": true
-  },
-  "nodeGroups": [],
   "pinData": {
     "Schedule Trigger": [
       {
@@ -867,17 +866,18 @@
       }
     ]
   },
-  "versionId": "98c292c0-2674-4b9e-b723-a9a780ce37f3",
-  "activeVersionId": null,
-  "triggerCount": 0,
+  "meta": {
+    "templateId": "4968",
+    "templateCredsSetupCompleted": true
+  },
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-01-03T18:26:29.185Z",
-      "createdAt": "2026-01-03T18:26:29.185Z",
       "role": "workflow:owner",
       "workflowId": "M59ziP3Xj91fy8zM",
-      "projectId": "9yX4R0cKO1fKLrIT"
+      "projectId": "9yX4R0cKO1fKLrIT",
+      "createdAt": "2026-01-03T18:26:29.185Z",
+      "updatedAt": "2026-01-03T18:26:29.185Z"
     }
   ],
   "activeVersion": null
