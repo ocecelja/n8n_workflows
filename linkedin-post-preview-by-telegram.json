@@ -1,10 +1,13 @@
 {
-  "updatedAt": "2026-02-08T06:51:37.682Z",
-  "createdAt": "2026-01-15T08:28:03.323Z",
   "id": "CQMOekrQxamRkw0P",
   "name": "LinkedIn Post Preview by Telegram",
   "active": true,
+  "activeVersionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
+  "createdAt": "2026-01-15T08:28:03.323Z",
+  "updatedAt": "2026-02-08T06:51:37.682Z",
   "isArchived": false,
+  "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
+  "triggerCount": 0,
   "nodes": [
     {
       "parameters": {
@@ -691,14 +694,13 @@
       ]
     }
   },
+  "nodeGroups": [],
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
-  "meta": null,
-  "nodeGroups": [],
   "pinData": {
     "Inbound Preview Req": [
       {
@@ -711,22 +713,18 @@
       }
     ]
   },
-  "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
-  "activeVersionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
-  "triggerCount": 0,
+  "meta": null,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-01-15T08:28:03.330Z",
-      "createdAt": "2026-01-15T08:28:03.330Z",
       "role": "workflow:owner",
       "workflowId": "CQMOekrQxamRkw0P",
-      "projectId": "9yX4R0cKO1fKLrIT"
+      "projectId": "9yX4R0cKO1fKLrIT",
+      "createdAt": "2026-01-15T08:28:03.330Z",
+      "updatedAt": "2026-01-15T08:28:03.330Z"
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-02-06T09:43:11.000Z",
-    "createdAt": "2026-02-06T09:43:06.747Z",
     "versionId": "3f153f43-a579-4ecb-810d-e217bbc4c69a",
     "workflowId": "CQMOekrQxamRkw0P",
     "nodes": [
@@ -1419,6 +1417,8 @@
     "authors": "Ozren Cecelja",
     "name": "Version 3f153f43",
     "description": "",
-    "autosaved": true
+    "autosaved": true,
+    "createdAt": "2026-02-06T09:43:06.747Z",
+    "updatedAt": "2026-02-06T09:43:11.000Z"
   }
 }
