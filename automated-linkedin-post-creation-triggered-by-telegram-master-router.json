@@ -1,10 +1,13 @@
 {
-  "updatedAt": "2026-01-27T17:52:44.943Z",
-  "createdAt": "2026-01-13T13:35:46.218Z",
   "id": "m85cMostB9gF0oR3",
   "name": "Automated LinkedIn Post Creation Triggered by Telegram Master Router",
   "active": true,
+  "activeVersionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
+  "createdAt": "2026-01-13T13:35:46.218Z",
+  "updatedAt": "2026-01-27T17:52:44.943Z",
   "isArchived": false,
+  "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
+  "triggerCount": 0,
   "nodes": [
     {
       "parameters": {
@@ -427,15 +430,12 @@
       ]
     }
   },
+  "nodeGroups": [],
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "nodeGroups": [],
   "pinData": {
     "Inbound Request": [
       {
@@ -458,22 +458,20 @@
       }
     ]
   },
-  "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
-  "activeVersionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
-  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-01-13T13:35:46.221Z",
-      "createdAt": "2026-01-13T13:35:46.221Z",
       "role": "workflow:owner",
       "workflowId": "m85cMostB9gF0oR3",
-      "projectId": "9yX4R0cKO1fKLrIT"
+      "projectId": "9yX4R0cKO1fKLrIT",
+      "createdAt": "2026-01-13T13:35:46.221Z",
+      "updatedAt": "2026-01-13T13:35:46.221Z"
     }
   ],
   "activeVersion": {
-    "updatedAt": "2026-01-27T17:52:52.000Z",
-    "createdAt": "2026-01-27T17:52:44.944Z",
     "versionId": "ba929b09-4735-4ccb-9d07-1c807c85370e",
     "workflowId": "m85cMostB9gF0oR3",
     "nodes": [
@@ -902,6 +900,8 @@
     "authors": "Ozren Cecelja",
     "name": "Version ba929b09",
     "description": "",
-    "autosaved": false
+    "autosaved": false,
+    "createdAt": "2026-01-27T17:52:44.944Z",
+    "updatedAt": "2026-01-27T17:52:52.000Z"
   }
 }
